@@ -26,4 +26,7 @@ Upload kernel source
 *--dry-run*
 :   Dry run
 
+*--no-testing*
+:   Don't upload verification branches
+
 Part of the **yo(1)** suite

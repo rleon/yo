@@ -22,7 +22,11 @@ class LRProfile():
         self.upload["force"] = {
                 # remote : [(local branch, remote branch)]
                 "origin" : [("rdma-next", "rdma-next"),
-                            ("rdma-rc", "rdma-rc")],
+                            ("rdma-rc", "rdma-rc")]
+        }
+
+        self.upload["testing"] = {
+                # remote : [(local branch, remote branch)]
                 "ver" : [("testing/rdma-next", "testing/rdma-next"),
                          ("testing/rdma-rc", "testing/rdma-rc"),
                          ("queue-next", "queue-next"),

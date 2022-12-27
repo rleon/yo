@@ -33,6 +33,12 @@ def args_upload(parser):
             action="store_true",
             help="dry run",
             default=False)
+    parser.add_argument(
+            "--no-testing",
+            dest="no_testing",
+            action="store_true",
+            help="Don't upload testing/* branches",
+            default=False)
 
 def cmd_upload(args):
     """Upload code"""
@@ -49,29 +55,34 @@ def cmd_upload(args):
     if profile is None:
         exit("Failed to understand upload profile.")
 
-    remotes = list(set(list(profile.upload["no_force"].keys()) +
-                       list(profile.upload["force"].keys()) +
-                       list(profile.upload["cross_check"].keys())))
+    remotes = list(profile.upload["no_force"].keys()) + list(profile.upload["force"].keys())
+    if not args.no_testing:
+        remotes += list(profile.upload["cross_check"].keys())
+        remotes += list(profile.upload["testing"].keys())
+
+    remotes = list(set(remotes))
 
     git_remote_update(remotes)
-    # Let's hope for the best and this check will be valid
-    # till we finish upload our branches
-    safe_to_push = True
-    for remote, branches in profile.upload["cross_check"].items():
-        for branch in branches:
-            safe_to_push = git_branch_contains(branch[0], "%s/%s" % (remote, branch[1]))
+    if not args.no_testing:
+        # Let's hope for the best and this check will be valid
+        # till we finish upload our branches
+        for remote, branches in profile.upload["cross_check"].items():
+            for branch in branches:
+                safe_to_push = git_branch_contains(branch[0], "%s/%s" % (remote, branch[1]))
 
-            if safe_to_push == False:
-                if args.yes == False:
-                    print("Branch %s is newer than you have." % (branch[1]))
+                if safe_to_push == False:
+                    if args.yes == False:
+                        print("Branch %s is newer than you have." % (branch[1]))
 
-                    if query_yes_no("Do you want to proceed?", 'no') is False:
-                        exit()
+                        if query_yes_no("Do you want to proceed?", 'no') is False:
+                            exit()
 
-                print("%s branch will use old %s" % (branch[0], branch[1]))
+                    print("%s branch will use old %s" % (branch[0], branch[1]))
 
     if hasattr(profile, 'setup_connection'):
         profile.setup_connection()
 
     upload_branches(profile.upload["no_force"], force=False, dry_run=args.dry_run)
     upload_branches(profile.upload["force"], force=True, dry_run=args.dry_run)
+    if not args.no_testing:
+        upload_branches(profile.upload["testing"], force=True, dry_run=args.dry_run)
