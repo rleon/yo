@@ -40,7 +40,7 @@ def buiild_commit(remote, branch, changeid, bases, verbose, dry_run):
             pass
 
         try:
-            git_push_gerrit(remote, "HEAD", branch, dry_run)
+            git_push_gerrit(remote, "HEAD", base_branch, dry_run)
         except subprocess.CalledProcessError:
             # nothing to commit, working tree clean
             pass
