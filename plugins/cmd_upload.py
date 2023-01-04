@@ -72,7 +72,7 @@ def cmd_upload(args):
 
                 if safe_to_push == False:
                     if args.yes == False:
-                        print("Branch %s is newer than you have." % (branch[1]))
+                        print("Branch %s is newer than you have in %s." % (branch[1], branch[0]))
 
                         if query_yes_no("Do you want to proceed?", 'no') is False:
                             exit()
