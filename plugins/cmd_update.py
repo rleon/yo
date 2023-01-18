@@ -2,7 +2,7 @@
 """
 from utils.git import *
 from utils.misc import get_project
-from profiles import get_profile
+from profiles import get_config
 
 def update_linus_tag(tags, verbose):
      for remote, branches in tags.items():
@@ -64,11 +64,8 @@ def cmd_update(args):
     if args.project != "kernel":
         exit("Update is supported for kernel tree only.")
 
-    profile = get_profile()
-    if profile is None:
-        exit("Failed to understand update profile.")
-
-    git_remote_update(profile.update["remotes"])
-    update_linus_tag(profile.update["tags"], args.verbose)
-    rebase_branches(profile.update["rebases"], args.verbose)
-    merge_branches(profile.update["merges"], args.verbose)
+    config = get_config("update")
+    git_remote_update(config["remotes"])
+    update_linus_tag(config["tags"], args.verbose)
+    rebase_branches(config["rebases"], args.verbose)
+    merge_branches(config["merges"], args.verbose)

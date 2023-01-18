@@ -1,5 +1,4 @@
 from collections import OrderedDict
-from utils.misc import fix_gpg_key
 
 class LRProfile():
     def __init__(self):
@@ -137,6 +136,3 @@ class LRProfile():
         self.verify["current"] = "I57c11684febd3aa97ebb54ae82368477458dd8f6"
         self.verify["bases"] = ["rdma-next-mlx", "net-next",
                                 "rdma-rc-mlx", "net"]
-
-    def setup_connection(self):
-        fix_gpg_key();

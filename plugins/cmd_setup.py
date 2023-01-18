@@ -2,7 +2,7 @@
 """
 from utils.cmdline import query_yes_no
 from utils.git import *
-from profiles import get_profile
+from profiles import get_config
 
 def set_remotes(remotes):
     for remote, urls in remotes.items():
@@ -44,10 +44,7 @@ def cmd_setup(args):
     if args.yes == False and query_yes_no("This will setup kernel remotes.\nDo you want to proceed?", 'no') is False:
         exit()
 
-    profile = get_profile()
-    if profile is None:
-        exit("Failed to understand setup profile.")
-
-    set_remotes(profile.setup["remotes"])
+    config = get_config("setup")
+    set_remotes(config["remotes"])
     git_remote_update()
-    create_branches(profile.setup["branches"])
+    create_branches(config["branches"])

@@ -3,22 +3,14 @@ import pwd
 import subprocess
 from .rdma import *
 
-def guess_profile():
-    # There is no need in smart code here,
-    # this is special utility for certain people
-    # just guess profile by their username
-
-    return pwd.getpwuid(os.getuid())[0]
-
-def get_profile(profile = None):
-    """Factory Method"""
+def get_config(section):
+    """ Provide specific config section """
     profiles = {
             "leonro": LRProfile,
     }
-    if profile is None:
-        profile = guess_profile()
 
+    profile = pwd.getpwuid(os.getuid())[0]
     try:
-        return profiles[profile]()
-    except KeyError:
-        return None
+        return getattr(profiles[profile](), section)
+    except AttributeError:
+        exit("Failed to find %s config." % (section))

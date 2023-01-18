@@ -3,7 +3,7 @@
 import os
 import tempfile
 from utils.git import *
-from profiles import get_profile
+from profiles import get_config
 from contextlib import contextmanager
 
 @contextmanager
@@ -59,7 +59,7 @@ def buiild_commits(remote, branches, bases, current_changeid=False,
 
     git_worktree_prune()
 
-def get_verify_remote(profile):
+def get_verify_remote():
     """TODO: support other profiles than kernel"""
     remotes = git_output(["remote"]).decode().split()
     for remote in remotes:
@@ -105,19 +105,16 @@ def cmd_verify(args):
     if args.root is None:
         exit()
 
-    profile = get_profile()
-    if profile is None:
-        exit("Failed to understand verify profile.")
-
-    remote = get_verify_remote(profile)
+    config = get_config("verify")
+    remote = get_verify_remote()
 
     git_remote_update([remote])
     if args.current:
         branches = git_current_branch()
-        current_changeid = profile.verify["current"]
+        current_changeid = config["current"]
     else:
-        branches = profile.verify["branches"]
+        branches = config["branches"]
         current_changeid = False
 
-    buiild_commits(remote, branches, profile.verify["bases"],
+    buiild_commits(remote, branches, config["bases"],
                    current_changeid, args.dry_run, args.verbose)

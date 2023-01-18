@@ -1,6 +1,6 @@
-from .main import get_profile
+from .main import get_config
 
 __all__ = [
-    "get_profile",
+    "get_config",
 ]
 

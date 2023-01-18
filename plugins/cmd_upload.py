@@ -2,8 +2,8 @@
 """
 from utils.cmdline import query_yes_no
 from utils.git import *
-from utils.misc import get_project
-from profiles import get_profile
+from utils.misc import get_project, fix_gpg_key
+from profiles import get_config
 
 def upload_branches(upload, force=False, dry_run=False):
     for remote, branches in upload.items():
@@ -51,14 +51,11 @@ def cmd_upload(args):
     if args.project != "kernel":
         exit("Upload is supported for kernel tree only.")
 
-    profile = get_profile()
-    if profile is None:
-        exit("Failed to understand upload profile.")
-
-    remotes = list(profile.upload["no_force"].keys()) + list(profile.upload["force"].keys())
+    config = get_config("upload")
+    remotes = list(config["no_force"].keys()) + list(config["force"].keys())
     if not args.no_testing:
-        remotes += list(profile.upload["cross_check"].keys())
-        remotes += list(profile.upload["testing"].keys())
+        remotes += list(config["cross_check"].keys())
+        remotes += list(config["testing"].keys())
 
     remotes = list(set(remotes))
 
@@ -66,7 +63,7 @@ def cmd_upload(args):
     if not args.no_testing:
         # Let's hope for the best and this check will be valid
         # till we finish upload our branches
-        for remote, branches in profile.upload["cross_check"].items():
+        for remote, branches in config["cross_check"].items():
             for branch in branches:
                 safe_to_push = git_branch_contains(branch[0], "%s/%s" % (remote, branch[1]))
 
@@ -79,10 +76,10 @@ def cmd_upload(args):
 
                     print("%s branch will use old %s" % (branch[0], branch[1]))
 
-    if hasattr(profile, 'setup_connection'):
-        profile.setup_connection()
 
-    upload_branches(profile.upload["no_force"], force=False, dry_run=args.dry_run)
-    upload_branches(profile.upload["force"], force=True, dry_run=args.dry_run)
+    fix_gpg_key()
+
+    upload_branches(config["no_force"], force=False, dry_run=args.dry_run)
+    upload_branches(config["force"], force=True, dry_run=args.dry_run)
     if not args.no_testing:
-        upload_branches(profile.upload["testing"], force=True, dry_run=args.dry_run)
+        upload_branches(config["testing"], force=True, dry_run=args.dry_run)
