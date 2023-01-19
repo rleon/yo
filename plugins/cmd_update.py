@@ -27,9 +27,10 @@ def rebase_branches(branches, verbose):
 
     git_checkout_branch(curr, verbose)
 
-def merge_branches(branches, verbose):
+def merge_branches(order, branches, verbose):
     curr = git_current_branch()
-    for local, pile in branches.items():
+    for local in order:
+        pile = branches[local]
         git_checkout_branch(local, verbose)
         if not git_same_branch(local, pile[0]):
             git_reset_branch(pile[0], verbose)
@@ -68,4 +69,4 @@ def cmd_update(args):
     git_remote_update(config["remotes"])
     update_linus_tag(config["tags"], args.verbose)
     rebase_branches(config["rebases"], args.verbose)
-    merge_branches(config["merges"], args.verbose)
+    merge_branches(config["merge_order"], config["merges"], args.verbose)

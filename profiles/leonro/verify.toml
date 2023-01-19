@@ -1,0 +1,13 @@
+current = "I57c11684febd3aa97ebb54ae82368477458dd8f6"
+bases = ["rdma-next-mlx", "net-next", "rdma-rc-mlx", "net"]
+
+[branches]
+# branch to test : changeID
+rdma-next = "Iaaf0a270fff9fb7537bee5b90d53a5dff51238a8"
+"testing/rdma-next" = "Iaaf0a270fff9fb7537bee5b90d53a5dff51238a9"
+rdma-rc = "I57c11684febd2aa97ebb44ae82368466458dd8f4"
+"testing/rdma-rc" = "Iaaf0a270fff9fb7537bee5b90d53a5dff51238b9"
+queue-next = "I57c11684febd2aa97ebb44ae82368466458dd8f5"
+queue-rc = "I57c11684febd2aa97ebb44ae82368466458dd8f6"
+xfrm-next = "I57c11684febd2aa97ebb54ae82368477458dd8f8"
+vfio-next = "I57c11684febd3aa97ebb54ae82368477458dd8f8"

@@ -1,0 +1,35 @@
+[remotes]
+# remote : [fetch, push]
+ipsec = ["https://git.kernel.org/pub/scm/linux/kernel/git/klassert/ipsec.git"]
+ipsec-next = ["https://git.kernel.org/pub/scm/linux/kernel/git/klassert/ipsec-next.git"]
+jgg = ["https://github.com/jgunthorpe/linux.git"]
+linus = ["https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git"]
+mellanox = ["ssh://leonro@l-gerrit.mtl.labs.mlnx:29418/upstream/linux"]
+ml = ["https://git.kernel.org/pub/scm/linux/kernel/git/mellanox/linux.git",
+       "gt@gitolite.kernel.org:pub/scm/linux/kernel/git/mellanox/linux"]
+net = ["https://git.kernel.org/pub/scm/linux/kernel/git/netdev/net.git"]
+net-next = ["https://git.kernel.org/pub/scm/linux/kernel/git/netdev/net-next.git"]
+origin = ["https://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git",
+           "git@gitolite.kernel.org:pub/scm/linux/kernel/git/leon/linux-rdma"]
+rdma = ["https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git",
+         "git@gitolite.kernel.org:pub/scm/linux/kernel/git/rdma/rdma"]
+saeed = ["https://git.kernel.org/pub/scm/linux/kernel/git/saeed/linux.git"]
+ver = ["git@github.com:Mellanox/nic-kernel.git"]
+vfio = ["https://github.com/awilliam/linux-vfio.git"]
+
+[branches]
+# branch : base
+master = "origin/master"
+rdma-next = "origin/rdma-next"
+queue-next = "ver/queue-next"
+queue-rc = "ver/queue-rc"
+"testing/rdma-next" = "ver/testing/rdma-next"
+"testing/rdma-rc" = "ver/testing/rdma-rc"
+rdma-rc = "origin/rdma-rc"
+vfio-next = "vfio/next"
+xfrm-next = "ipsec-next/master"
+net-next = "net-next/master"
+net = "net/master"
+mlx5-next = "ml/mlx5-next"
+"wip/leon-for-next" = "rdma/wip/leon-for-next"
+"wip/leon-for-rc" = "rdma/wip/leon-for-rc"
