@@ -13,6 +13,7 @@ cmd_modules = {
     "cmd_setup",
     "cmd_update",
     "cmd_upload",
+    "cmd_push",
 }
 
 if __name__ == "__main__":

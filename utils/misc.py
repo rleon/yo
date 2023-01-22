@@ -1,5 +1,17 @@
 import os
 import subprocess
+from contextlib import contextmanager
+
+@contextmanager
+def in_directory(dir):
+    """Context manager that chdirs into a directory and restores the original
+    directory when closed."""
+    cdir = os.getcwd()
+    try:
+        os.chdir(dir)
+        yield True
+    finally:
+        os.chdir(cdir)
 
 project_marks = {
         "kernel": "scripts/faddr2line",

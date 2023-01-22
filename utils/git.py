@@ -80,13 +80,6 @@ def git_push(remote, branches, force=False, dry_run=False):
 
     git_call(cmd + [remote] + branches)
 
-def git_push_gerrit(remote, commit, branch, dry_run=False):
-    cmd = ["push"]
-    if dry_run:
-        cmd += ["--dry-run"]
-
-    git_call(cmd + [remote, '%s:refs/for/%s%%topic=leon_testing' % (commit, branch)])
-
 def git_same_content(a, b):
     if a == b:
         return True
@@ -134,6 +127,9 @@ def git_reset_branch(commit, verbose=False):
 
 def git_current_branch():
     return git_output(["symbolic-ref", "--short", "-q", "HEAD"]).decode()
+
+def git_current_sha():
+    return git_output(["rev-parse", "--short", "-q", "HEAD"]).decode()
 
 def git_checkout_branch(branch=None, verbose=False):
     """Checkout specific branch and return previous branch"""
@@ -232,6 +228,12 @@ def git_worktree_prune():
 def git_commit_from_file(fname, verbose=False):
     cmd = ["commit", "--allow-empty", "--no-edit"]
     if not verbose:
-        git_output(cmd + ["-q", "-F", fname])
+        git_output(cmd + ["-q", "-s", "-F", fname])
     else:
-        git_call(cmd + ["-F", fname])
+        git_call(cmd + ["-s", "-F", fname])
+
+def git_author_name():
+    git_simple_output(["config", "user.name"])
+
+def git_author_email():
+    git_simple_output(["config", "user.email"])

@@ -3,19 +3,9 @@
 import os
 import tempfile
 from utils.git import *
+from utils.gerrit import get_gerrit_remote, git_push_gerrit
+from utils.misc import in_directory
 from profiles import get_config
-from contextlib import contextmanager
-
-@contextmanager
-def in_directory(dir):
-    """Context manager that chdirs into a directory and restores the original
-    directory when closed."""
-    cdir = os.getcwd()
-    try:
-        os.chdir(dir)
-        yield True
-    finally:
-        os.chdir(cdir)
 
 def buiild_commit(remote, branch, changeid, bases, verbose, dry_run):
     base_branch = git_find_base(remote, branch, bases)
@@ -30,7 +20,7 @@ def buiild_commit(remote, branch, changeid, bases, verbose, dry_run):
         return
 
     with tempfile.NamedTemporaryFile('w') as F:
-        F.write('%s testing\n\n%s\n\nIssue: 1308201\nChange-Id: %s\nSigned-off-by: Leon Romanovsky <leonro@nvidia.com>' % (branch, log, changeid))
+        F.write('%s testing\n\n%s\n\nIssue: 1308201\nChange-Id: %s\n' % (branch, log, changeid))
         F.flush()
 
         try:
@@ -40,7 +30,7 @@ def buiild_commit(remote, branch, changeid, bases, verbose, dry_run):
             pass
 
         try:
-            git_push_gerrit(remote, "HEAD", base_branch, dry_run)
+            git_push_gerrit(remote, "HEAD", base_branch, "leon_testing", dry_run)
         except subprocess.CalledProcessError:
             # nothing to commit, working tree clean
             pass
@@ -58,14 +48,6 @@ def buiild_commits(remote, branches, bases, current_changeid=False,
                     buiild_commit(remote, branch, changeid, bases, verbose, dry_run)
 
     git_worktree_prune()
-
-def get_verify_remote():
-    """TODO: support other profiles than kernel"""
-    remotes = git_output(["remote"]).decode().split()
-    for remote in remotes:
-        url = git_output(["remote", "get-url", "--push", remote]).decode()
-        if "l-gerrit.mtl.labs.mlnx:29418/upstream/linux" in url:
-            return remote
 
 #--------------------------------------------------------------------------------------------------------
 def args_verify(parser):
@@ -106,7 +88,7 @@ def cmd_verify(args):
         exit()
 
     config = get_config("verify")
-    remote = get_verify_remote()
+    remote = get_gerrit_remote()
 
     git_remote_update([remote])
     if args.current:
