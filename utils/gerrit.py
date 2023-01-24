@@ -57,4 +57,4 @@ def generate_changeid(branch="HEAD"):
     ps = subprocess.run(["git", "show", branch], check=True, capture_output=True)
     patchid = subprocess.run(["git", "patch-id", "--stable"], input=ps.stdout, capture_output=True)
 
-    return patchid.stdout.decode('utf-8').strip().split()[0]
+    return "I%s" % (patchid.stdout.decode('utf-8').strip().split()[0])
