@@ -1,7 +1,11 @@
 import os
 import pwd
+import sys
 import subprocess
-import tomllib
+if sys.version_info >= (3, 11):
+    import tomllib
+else:
+    import tomli as tomllib
 from utils.cmdline import get_internal_fn
 
 def get_config(section):

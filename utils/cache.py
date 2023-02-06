@@ -1,5 +1,9 @@
 import os
-import tomllib
+import sys
+if sys.version_info >= (3, 11):
+    import tomllib
+else:
+    import tomli as tomllib
 import subprocess
 from .misc import in_directory
 from .gerrit import generate_changeid
