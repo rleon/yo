@@ -10,8 +10,8 @@ rdma-rc = "wip/leon-for-rc"
 rdma-next = "wip/leon-for-next"
 xfrm-next = "ipsec-next/master"
 vfio-next = "vfio/next"
-net-next = "net-next/master"
-net = "net/master"
+net-next = "net-next/main"
+net = "net/main"
 
 [merges]
 # local branch : [base, source branches]
