@@ -23,7 +23,7 @@ def add_branch_cache(f, branch, issue=1308201):
 
 def get_branch_cache(branch):
     create_cache_dir()
-    f = cache_dir + "/push.toml"
+    f = cache_dir + "/branches.db"
 
     if not os.path.isfile(f):
         add_branch_cache(f, branch)
