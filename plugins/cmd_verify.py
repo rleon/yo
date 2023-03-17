@@ -4,6 +4,7 @@ import os
 import tempfile
 from utils.git import *
 from utils.gerrit import get_gerrit_remote, git_push_gerrit
+from utils.cache import get_branch_cache
 from utils.misc import in_directory
 from profiles import get_config
 
@@ -44,7 +45,9 @@ def buiild_commits(remote, branches, bases, current_changeid=False,
             if current_changeid:
                 buiild_commit(remote, branches, current_changeid, bases, verbose, dry_run)
             else:
-                for branch, changeid in branches.items():
+                for branch in branches:
+                    cache = get_branch_cache(branch)
+                    changeid = cache['changeid']
                     buiild_commit(remote, branch, changeid, bases, verbose, dry_run)
 
     git_worktree_prune()
