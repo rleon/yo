@@ -199,7 +199,10 @@ def git_merge_squash(branch, verbose=False):
     else:
         git_call(cmd + [branch])
 
-def git_find_base(remote, current, branches):
+def git_find_base(remote, current, branches=["rdma-rc-mlx",
+                                             "rdma-next-mlx",
+                                             "net-next",
+                                             "net"]):
     commits = 100000000
     best = ""
 

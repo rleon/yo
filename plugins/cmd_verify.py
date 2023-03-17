@@ -8,8 +8,8 @@ from utils.cache import get_branch_cache
 from utils.misc import in_directory
 from profiles import get_config
 
-def buiild_commit(remote, branch, changeid, bases, verbose, dry_run):
-    base_branch = git_find_base(remote, branch, bases)
+def buiild_commit(remote, branch, changeid, verbose, dry_run):
+    base_branch = git_find_base(remote, branch)
     base = "%s/%s" % (remote, base_branch)
 
     git_reset_branch(base, verbose)
@@ -36,7 +36,7 @@ def buiild_commit(remote, branch, changeid, bases, verbose, dry_run):
             # nothing to commit, working tree clean
             pass
 
-def buiild_commits(remote, branches, bases, dry_run=False, verbose=False):
+def buiild_commits(remote, branches, dry_run=False, verbose=False):
     with tempfile.TemporaryDirectory() as d:
         git_detach_workspace(d, verbose)
 
@@ -44,7 +44,7 @@ def buiild_commits(remote, branches, bases, dry_run=False, verbose=False):
             for branch in branches:
                 cache = get_branch_cache(branch)
                 changeid = cache['changeid']
-                buiild_commit(remote, branch, changeid, bases, verbose, dry_run)
+                buiild_commit(remote, branch, changeid, verbose, dry_run)
 
     git_worktree_prune()
 
@@ -85,5 +85,4 @@ def cmd_verify(args):
     git_remote_update([remote])
     branches = config["branches"]
 
-    buiild_commits(remote, branches, config["bases"],
-                   args.dry_run, args.verbose)
+    buiild_commits(remote, branches, args.dry_run, args.verbose)

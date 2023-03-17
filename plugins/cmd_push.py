@@ -51,7 +51,6 @@ def cmd_push(args):
     if args.root is None:
         exit()
 
-    config = get_config("push")
     remote = get_gerrit_remote()
 
     git_remote_update([remote])
@@ -59,8 +58,7 @@ def cmd_push(args):
     cache = get_branch_cache(branch)
 
     if not args.base:
-        bases = ["rdma-rc-mlx", "rdma-next-mlx", "net-next", "net"]
-        base = git_find_base(remote, branch, bases)
+        base = git_find_base(remote, branch)
     else:
         base = args.base[0]
 

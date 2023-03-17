@@ -1,4 +1,2 @@
-bases = ["rdma-next-mlx", "net-next", "rdma-rc-mlx", "net"]
-
 branches =["rdma-next", "testing/rdma-next", "rdma-rc", "testing/rdma-rc",
 	   "queue-next", "queue-rc", "xfrm-next", "vfio-next"]
