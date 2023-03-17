@@ -36,31 +36,20 @@ def buiild_commit(remote, branch, changeid, bases, verbose, dry_run):
             # nothing to commit, working tree clean
             pass
 
-def buiild_commits(remote, branches, bases, current_changeid=False,
-                   dry_run=False, verbose=False):
+def buiild_commits(remote, branches, bases, dry_run=False, verbose=False):
     with tempfile.TemporaryDirectory() as d:
         git_detach_workspace(d, verbose)
 
         with in_directory(d):
-            if current_changeid:
-                buiild_commit(remote, branches, current_changeid, bases, verbose, dry_run)
-            else:
-                for branch in branches:
-                    cache = get_branch_cache(branch)
-                    changeid = cache['changeid']
-                    buiild_commit(remote, branch, changeid, bases, verbose, dry_run)
+            for branch in branches:
+                cache = get_branch_cache(branch)
+                changeid = cache['changeid']
+                buiild_commit(remote, branch, changeid, bases, verbose, dry_run)
 
     git_worktree_prune()
 
 #--------------------------------------------------------------------------------------------------------
 def args_verify(parser):
-    parser.add_argument(
-            "-c",
-            "--current",
-            dest="current",
-            action="store_true",
-            help="Verify current branch",
-            default=False)
     parser.add_argument(
             "-n",
             "--dry-run",
@@ -94,12 +83,7 @@ def cmd_verify(args):
     remote = get_gerrit_remote()
 
     git_remote_update([remote])
-    if args.current:
-        branches = git_current_branch()
-        current_changeid = config["current"]
-    else:
-        branches = config["branches"]
-        current_changeid = False
+    branches = config["branches"]
 
     buiild_commits(remote, branches, config["bases"],
-                   current_changeid, args.dry_run, args.verbose)
+                   args.dry_run, args.verbose)

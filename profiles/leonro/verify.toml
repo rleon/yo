@@ -1,4 +1,3 @@
-current = "I57c11684febd3aa97ebb54ae82368477458dd8f6"
 bases = ["rdma-next-mlx", "net-next", "rdma-rc-mlx", "net"]
 
 branches =["rdma-next", "testing/rdma-next", "rdma-rc", "testing/rdma-rc",

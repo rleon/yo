@@ -20,9 +20,6 @@ Setup remotes
 
 # OPTIONS
 
-*--current
-:   Check current branch only
-
 *--dry-run
 :   Dry run
 
