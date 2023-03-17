@@ -19,37 +19,41 @@ def git_push_gerrit(remote, commit, branch, topic, dry_run=False):
 
     git_call(cmd + [remote, '%s:refs/for/%s%%topic=%s' % (commit, branch, topic)])
 
+def build_and_push(remote, upto, base, branch, topic, issue, changeid, dry_run, verbose):
+    git_reset_branch("%s/%s" % (remote, base), verbose)
+    log = git_simple_output(['log', '-n', '100', '--abbrev=12',
+                             '--format=commit %h (\"%s\")', 'HEAD..', upto])
+
+    try:
+        git_merge_squash(upto, verbose)
+    except subprocess.CalledProcessError:
+        return
+
+    with tempfile.NamedTemporaryFile('w') as F:
+        F.write('%s testing\n\n%s\n\nIssue: %s\nChange-Id: %s\n'
+                % (branch, log, issue, changeid))
+        F.flush()
+
+        try:
+            git_commit_from_file(F.name, verbose)
+        except subprocess.CalledProcessError:
+            # nothing to commit, working tree clean
+            pass
+
+        try:
+            git_push_gerrit(remote, "HEAD", base, topic, dry_run)
+        except subprocess.CalledProcessError:
+            # nothing to commit, working tree clean
+            pass
+
+
 def push_squash(remote, upto, base, branch, topic, issue, changeid, dry_run, verbose):
     with tempfile.TemporaryDirectory() as d:
         git_detach_workspace(d, verbose)
 
         with in_directory(d):
-            git_reset_branch("%s/%s" % (remote, base), verbose)
-            log = git_simple_output(['log', '-n', '100', '--abbrev=12',
-                                     '--format=commit %h (\"%s\")', 'HEAD..', upto])
-
-            try:
-                git_merge_squash(upto, verbose)
-            except subprocess.CalledProcessError:
-                git_worktree_prune()
-                return
-
-            with tempfile.NamedTemporaryFile('w') as F:
-                F.write('%s testing\n\n%s\n\nIssue: %s\nChange-Id: %s\n'
-                        % (branch, log, issue, changeid))
-                F.flush()
-
-                try:
-                    git_commit_from_file(F.name, verbose)
-                except subprocess.CalledProcessError:
-                    # nothing to commit, working tree clean
-                    pass
-
-                try:
-                    git_push_gerrit(remote, "HEAD", base, topic, dry_run)
-                except subprocess.CalledProcessError:
-                    # nothing to commit, working tree clean
-                    pass
+            for up, ba, br, to, iss, ch in zip(upto, base, branch, topic, issue, changeid):
+                build_and_push(remote, up, ba, br, to, iss, ch, dry_run, verbose)
 
     git_worktree_prune()
 

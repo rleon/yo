@@ -76,8 +76,8 @@ def cmd_push(args):
     changeid = cache['changeid']
 
     if args.squash:
-        push_squash(remote, args.upto, base, branch, args.topic,
-                    issue, changeid, args.dry_run, args.verbose)
+        push_squash(remote, [args.upto], [base], [branch], [args.topic],
+                    [issue], [changeid], args.dry_run, args.verbose)
         return
 
     try:
