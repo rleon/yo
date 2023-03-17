@@ -47,7 +47,14 @@ def build_and_push(remote, upto, base, branch, topic, issue, changeid, dry_run, 
             pass
 
 
-def push_squash(remote, upto, base, branch, topic, issue, changeid, dry_run, verbose):
+def git_push_squash_gerrit(remote, upto, base, branch, topic, issue, changeid, dry_run, verbose):
+    if type(upto) is not list: upto = [ upto ]
+    if type(base) is not list: base = [ base ]
+    if type(branch) is not list: branch = [ branch ]
+    if type(topic) is not list: topic = [ topic ]
+    if type(issue) is not list: issue = [ issue ]
+    if type(changeid) is not list: changeid = [ changeid ]
+
     with tempfile.TemporaryDirectory() as d:
         git_detach_workspace(d, verbose)
 
