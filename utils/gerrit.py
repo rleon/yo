@@ -12,6 +12,15 @@ def get_gerrit_remote():
         if ":29418/upstream/linux" in url:
             return remote
 
+def get_gerrit_info(remote):
+    url = git_output(["remote", "get-url", remote]).decode()
+    host = url.split("@")[1].split(":")[0]
+    port = int(url.split("@")[1].split(":")[1].split("/")[0])
+    project = "upstream/linux"
+
+    return host, port, project
+
+
 def git_push_gerrit(remote, commit, branch, topic, dry_run=False):
     cmd = ["push"]
     if dry_run:
