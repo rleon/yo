@@ -53,7 +53,7 @@ def cmd_push(args):
 
     remote = get_gerrit_remote()
 
-    git_remote_update([remote])
+    git_remote_update(remote)
     branch = git_current_branch()
     cache = get_branch_cache(branch)
 

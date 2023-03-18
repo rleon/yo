@@ -39,7 +39,7 @@ def cmd_verify(args):
     config = get_config("verify")
     remote = get_gerrit_remote()
 
-    git_remote_update([remote])
+    git_remote_update(remote)
     branches = config["branches"]
 
     upto = []

@@ -108,6 +108,8 @@ def git_remote_update(remotes=None):
     if remotes is None:
         remotes = ["all"]
 
+    if type(remotes) is not list: remotes = [ remotes ]
+
     git_call(["remote", "update"] + remotes)
 
 def git_linus_tag(remote, remote_br):
