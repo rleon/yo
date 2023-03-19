@@ -10,6 +10,10 @@ efficiently.
 viewed with **yo cmd --help**, or online as linked below:
 
 * **[yo upload](docs/yo_upload.1.md)**
+* **[yo setup](docs/yo_setup.1.md)**
+* **[yo push](docs/yo_push.1.md)**
+* **[yo verify](docs/yo_verify.1.md)**
+* **[yo web](docs/yo_web.1.md)**
 
 # Installation
 
