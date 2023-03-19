@@ -3,6 +3,7 @@
 from utils.git import *
 from utils.gerrit import *
 from utils.cache import get_branch_cache
+from utils.misc import get_project
 from profiles import get_config
 
 #--------------------------------------------------------------------------------------------------------
@@ -50,6 +51,10 @@ def cmd_push(args):
     args.root = git_root()
     if args.root is None:
         exit()
+
+    args.project = get_project(args)
+    if args.project != "kernel":
+        exit("Upload is supported for kernel tree only.")
 
     remote = get_gerrit_remote()
 

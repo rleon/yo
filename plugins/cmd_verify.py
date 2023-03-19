@@ -3,6 +3,7 @@
 from utils.git import *
 from utils.gerrit import *
 from utils.cache import get_branch_cache
+from utils.misc import get_project
 from profiles import get_config
 from texttable import Texttable
 from datetime import datetime
@@ -82,6 +83,10 @@ def cmd_verify(args):
     args.root = git_root()
     if args.root is None:
         exit()
+
+    args.project = get_project(args)
+    if args.project != "kernel":
+        exit("Upload is supported for kernel tree only.")
 
     config = get_config("verify")
     remote = get_gerrit_remote()
