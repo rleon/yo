@@ -91,26 +91,27 @@ def cmd_verify(args):
     config = get_config("verify")
     remote = get_gerrit_remote()
 
-    git_remote_update(remote)
+    if not args.status:
+        git_remote_update(remote)
+
     branches = config["branches"]
 
-    upto = []
     base = []
-    topic = []
     issue = []
     changeid = []
     for branch in branches:
-        upto += [branch]
-        base += [git_find_base(remote, branch)]
-        topic += [config["topic"]]
-
         cache = get_branch_cache(branch)
-        issue += [cache['issue']]
         changeid += [cache['changeid']]
+        if args.status:
+            continue
+
+        base += [git_find_base(remote, branch)]
+        issue += [cache['issue']]
 
     if args.status:
         print_branches_status(remote, branches, changeid)
         return
 
-    git_push_squash_gerrit(remote, upto, base, branches, topic, issue,
+    topic = [config["topic"]] * len(branches)
+    git_push_squash_gerrit(remote, branches, base, branches, topic, issue,
                            changeid, args.dry_run, args.verbose)
