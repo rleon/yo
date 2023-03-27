@@ -109,8 +109,8 @@ Various utilities to help perform routine tasks""")
         sparser.required = True
         argsfn(sparser)
         sparser.set_defaults(func=fn)
-        sparser.print_help = functools.partial(my_print_help, k,
-                                               sparser.print_help)
+        #sparser.print_help = functools.partial(my_print_help, k,
+        #                                       sparser.print_help)
 
     try:
         import argcomplete
