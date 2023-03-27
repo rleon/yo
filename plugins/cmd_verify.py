@@ -12,8 +12,8 @@ import vendor.gerrit as gerrit
 
 def print_branches_status(remote, branches, changeid):
     t = Texttable(max_width=0)
-    t.set_header_align(["l", "c", "l", "l", "l", "l", "l", "l"])
-    t.header(('Number', 'Subject', 'Branch', 'Updated', 'BT', 'CA', 'KC', 'RT'))
+    t.set_header_align(["l", "l", "l", "l", "l", "l", "l", "l"])
+    t.header(('Issue', 'Subject', 'Branch', 'Updated', 'BT', 'CA', 'KC', 'RT'))
 
     host, port, project = get_gerrit_info(remote)
     rev = gerrit.Query(host, port)
