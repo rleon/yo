@@ -15,6 +15,7 @@ cmd_modules = {
     "cmd_upload",
     "cmd_push",
     "cmd_web",
+    "cmd_cloud",
 }
 
 if __name__ == "__main__":

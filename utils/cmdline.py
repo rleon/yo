@@ -9,6 +9,7 @@ import os
 import functools
 import subprocess
 import shlex
+import getpass
 
 source_root = os.path.normpath(
     os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
@@ -51,6 +52,14 @@ def query_yes_no(question, default="yes"):
             sys.stdout.write(
                 "Please respond with 'yes' or 'no' (or 'y' or 'n').\n")
 
+def query_user_pass(target):
+    """Ask for username/password via input() and return their answer.
+    """
+    while True:
+        sys.stdout.write("Username for %s: " % (target))
+        username = input()
+        password = getpass.getpass(prompt='Password for %s: ' % (target))
+        return username, password
 
 def load_all_commands(name, top_module):
     """Load the modules containing the command implementation and then extract all
