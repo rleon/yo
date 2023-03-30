@@ -30,6 +30,9 @@ def extend_setups(r, headers):
     t.header(('Name', 'Before', 'After'))
     result = []
     for setups in r.json():
+        if setups['status'] != 'active':
+            continue
+
         name = setups['setup_info']['name']
         _id = setups['_id']
         hours = calculate_extend_delta(setups['expiration_time'])
@@ -51,6 +54,9 @@ def list_user_setups(r):
     t.header(('Name', 'Order', 'Expire'))
     data = []
     for setups in r.json():
+        if setups['status'] != 'active':
+            continue
+
         data.append((setups['setup_info']['name'],
                      get_local_strtime(setups['order_time'], True),
                      get_local_strtime(setups['expiration_time'], True)))
