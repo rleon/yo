@@ -6,7 +6,10 @@ import math
 import requests
 from texttable import Texttable
 from datetime import datetime
-from zoneinfo import ZoneInfo
+try:
+    import zoneinfo
+except ImportError:
+    from backports import zoneinfo
 
 def get_local_strtime(time, tzinfo=False):
     if not tzinfo:
@@ -18,8 +21,8 @@ def get_local_strtime(time, tzinfo=False):
     return strtime.strftime("%Y-%m-%d %H:%M:%S")
 
 def calculate_extend_delta(current_expire):
-    expire = datetime.strptime(current_expire, "%Y-%m-%d %H:%M:%S").replace(tzinfo=ZoneInfo('GMT'))
-    now = datetime.now(ZoneInfo('GMT'))
+    expire = datetime.strptime(current_expire, "%Y-%m-%d %H:%M:%S").replace(tzinfo=zoneinfo.ZoneInfo('GMT'))
+    now = datetime.now(zoneinfo.ZoneInfo('GMT'))
     difference = expire - now
     h = difference.days * 24 + math.ceil(difference.seconds/3600)
     return 96 - h
