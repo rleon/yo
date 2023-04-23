@@ -50,6 +50,37 @@ def extend_setups(r, headers):
     t.add_rows(result, False)
     print(t.draw())
 
+def restart_vms(r, headers, n):
+    name = None
+    for setups in r.json():
+        if setups['status'] != 'active':
+            continue
+
+        if name is not None and n is None:
+            exit("You have more than one setup. Please specify name to VM restart")
+
+        name = setups['setup_info']['name']
+        if n is not None and name != n:
+            name = None
+            continue
+
+        _id = setups['_id']
+        host = setups['setup_info']['players'][0]['host_ip']
+        numb_players = len(setups['setup_info']['players'])
+        players = []
+        count = 0
+        for i in setups['setup_info']['players']:
+            count += 1
+            players += ['player%d' % (count)]
+        break
+
+    if name is None:
+        print("There are no setups to restart")
+        return
+
+    data = {"players_info": {host: players}}
+    ext = requests.post('http://linux-cloud.mellanox.com/api/session/reload_setup/%s' %(_id),
+                        json=data, headers=headers)
 
 def list_user_setups(r):
     t = Texttable(max_width=0)
@@ -76,6 +107,13 @@ def args_cloud(parser):
             action="store_true",
             help="Extend setup",
             default=False)
+    parser.add_argument(
+            "-r",
+            "--restart-vms",
+            dest="restart_vms",
+            help="Restart VMs",
+            const=' ',
+            nargs='?')
 
 def cmd_cloud(args):
     """Manage sessions"""
@@ -89,8 +127,15 @@ def cmd_cloud(args):
     payload = {'user': '', 'limit': '0'}
     r = requests.get('http://linux-cloud.mellanox.com/api/get_user_sessions', params=payload, headers=headers)
 
-    if (args.extend):
+    if args.extend:
         extend_setups(r, headers)
+        return
+
+    if args.restart_vms:
+        name = None;
+        if args.restart_vms != ' ':
+            name = args.restart_vms
+        restart_vms(r, headers, name)
         return
 
     list_user_setups(r)
