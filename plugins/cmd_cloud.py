@@ -39,7 +39,7 @@ def extend_setups(r, headers):
         name = setups['setup_info']['name']
         _id = setups['_id']
         hours = calculate_extend_delta(setups['expiration_time'])
-        if hours == 0:
+        if hours <= 0:
             continue
 
         data = {'name' : name, 'id' : _id, 'timeout': hours}
