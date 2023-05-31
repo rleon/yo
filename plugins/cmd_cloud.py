@@ -50,29 +50,40 @@ def extend_setups(r, headers):
     t.add_rows(result, False)
     print(t.draw())
 
-def restart_vms(r, headers, n):
+def restart_vm(r, headers, n):
     name = None
     for setups in r.json():
         if setups['status'] != 'active':
             continue
 
         if name is not None and n is None:
-            exit("You have more than one setup. Please specify name to VM restart")
+            exit("You have more than one setup. Please specify VM to restart")
 
         name = setups['setup_info']['name']
-        if n is not None and name != n:
+        # n can be provided in one of the following formats:
+        # 1. Setup name, e.g. 10.141.67.105-106_cx4
+        # 2. Specific IP
+        ip1=name.split('-')[0]
+        try:
+            ip2='.'.join(ip1.split('.')[:-1]) + '.' + name.split('-')[1].split('_')[0]
+        except IndexError:
+            # We have single node machine
+            ip2=ip1
+        if n is not None and name != n and ip1 != n and ip2 != n:
             name = None
             continue
 
         _id = setups['_id']
         host = setups['setup_info']['players'][0]['host_ip']
-        numb_players = len(setups['setup_info']['players'])
-        players = []
-        count = 0
-        for i in setups['setup_info']['players']:
-            count += 1
-            players += ['player%d' % (count)]
-        break
+        players=[]
+        if name == n:
+            players = ['player1', 'player2']
+        if ip1 == n:
+            players = ['player1']
+        if ip2 == n:
+            players = ['player2']
+        if n is not None:
+            break
 
     if name is None:
         print("There are no setups to restart")
@@ -109,9 +120,9 @@ def args_cloud(parser):
             default=False)
     parser.add_argument(
             "-r",
-            "--restart-vms",
-            dest="restart_vms",
-            help="Restart VMs",
+            "--restart-vm",
+            dest="restart_vm",
+            help="Restart VM",
             const=' ',
             nargs='?')
 
@@ -131,11 +142,11 @@ def cmd_cloud(args):
         extend_setups(r, headers)
         return
 
-    if args.restart_vms:
+    if args.restart_vm:
         name = None;
-        if args.restart_vms != ' ':
-            name = args.restart_vms
-        restart_vms(r, headers, name)
+        if args.restart_vm != ' ':
+            name = args.restart_vm
+        restart_vm(r, headers, name)
         return
 
     list_user_setups(r)
