@@ -16,6 +16,7 @@ cmd_modules = {
     "cmd_push",
     "cmd_web",
     "cmd_cloud",
+    "cmd_console",
 }
 
 if __name__ == "__main__":

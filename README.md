@@ -14,6 +14,8 @@ viewed with **yo cmd --help**, or online as linked below:
 * **[yo push](docs/yo_push.1.md)**
 * **[yo verify](docs/yo_verify.1.md)**
 * **[yo web](docs/yo_web.1.md)**
+* **[yo cloud](docs/yo_cloud.1.md)**
+* **[yo console](docs/yo_console.1.md)**
 
 # Installation
 
