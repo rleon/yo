@@ -6,15 +6,15 @@ import os
 import questionary
 
 #--------------------------------------------------------------------------------------------------------
-def args_console(parser):
+def args_connect(parser):
     parser.add_argument(
             dest="name",
-            help="Server name/ip to view console",
+            help="Server name/ip to run repro",
             const=' ',
             nargs='?')
 
-def cmd_console(args):
-    """View console"""
+def cmd_connect(args):
+    """Connect to server"""
     if args.name is None:
         r = get_user_sessions()
         players = get_players_info(r)
@@ -27,5 +27,5 @@ def cmd_console(args):
 
         args.name = choice.split(' ')[0]
 
-    cmd = ['ssh', '-t', ] + [args.name] + ['dmesg -w']
+    cmd = ['ssh', '-t', ] + [args.name]
     os.execvp(cmd[0], cmd)

@@ -2,6 +2,25 @@
 """
 from utils.cache import get_cloud_cache
 import requests
+import questionary
+
+def get_players_info(r):
+    headers = get_base_headers()
+    host = []
+    for setups in r.json():
+        if setups['status'] != 'active':
+            continue
+
+        name = setups['setup_info']['name']
+
+        host += [setups['setup_info']['players'][0]['ip'] +
+                 '    ' + setups['session_description']]
+        if len(setups['setup_info']['players']) == 2:
+            host += [ setups['setup_info']['players'][1]['ip'] +
+                     '    ' + setups['session_description']]
+        host += [questionary.Separator()]
+
+    return host
 
 def get_players_data(r, n):
     name = None
