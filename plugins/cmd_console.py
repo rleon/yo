@@ -36,7 +36,13 @@ def cmd_console(args):
     if args.name is None:
         r = get_user_sessions()
         players = get_players_info(r)
+        if players is None:
+            exit("There are no active setups to connect")
+
         choice = questionary.select("Which server to connect?", players).ask()
+        if choice is None:
+            exit()
+
         args.name = choice.split(' ')[0]
 
     cmd = ['ssh', '-t', ] + [args.name] + ['dmesg -w']
