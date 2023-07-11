@@ -13,12 +13,10 @@ def get_players_info(r):
 
         name = setups['setup_info']['name']
 
-        host += [setups['setup_info']['players'][0]['ip'] +
-                 '    ' + setups['session_description']]
+        host += [questionary.Separator("--- %s %s ---" %(name, setups['session_description']))]
+        host += [setups['setup_info']['players'][0]['ip']]
         if len(setups['setup_info']['players']) == 2:
-            host += [ setups['setup_info']['players'][1]['ip'] +
-                     '    ' + setups['session_description']]
-        host += [questionary.Separator()]
+            host += [setups['setup_info']['players'][1]['ip']]
 
     return host
 
