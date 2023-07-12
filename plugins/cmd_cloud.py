@@ -1,9 +1,10 @@
 """YO cloud tools
 """
-from utils.cloud import get_user_sessions, get_base_headers, get_players_data
+from utils.cloud import get_user_sessions, get_base_headers, get_players_data, get_players_info
 
 import math
 import requests
+import questionary
 from texttable import Texttable
 from datetime import datetime
 try:
@@ -100,10 +101,18 @@ def cmd_cloud(args):
         return
 
     if args.restart_vm:
-        name = None;
+        choice = None;
         if args.restart_vm != ' ':
-            name = args.restart_vm
-        restart_vm(r, headers, name)
+            choice = [args.restart_vm]
+        else:
+            players = get_players_info(r)
+            choice = questionary.checkbox("Which server to restart?", players).ask()
+
+        if choice is None:
+            exit()
+
+        for name in choice:
+            restart_vm(r, headers, name)
         return
 
     list_user_setups(r)
