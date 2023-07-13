@@ -103,16 +103,15 @@ def cmd_cloud(args):
     if args.restart_vm:
         choice = None;
         if args.restart_vm != ' ':
-            choice = [args.restart_vm]
+            choice = args.restart_vm
         else:
-            players = get_players_info(r)
-            choice = questionary.checkbox("Which server to restart?", players).ask()
+            players = get_players_info(r, True)
+            choice = questionary.select("Which server/setup to restart?", players).ask()
 
         if choice is None:
             exit()
 
-        for name in choice:
-            restart_vm(r, headers, name)
+        restart_vm(r, headers, choice)
         return
 
     list_user_setups(r)

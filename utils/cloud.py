@@ -4,7 +4,7 @@ from utils.cache import get_cloud_cache
 import requests
 import questionary
 
-def get_players_info(r):
+def get_players_info(r, s=False):
     headers = get_base_headers()
     host = []
     for setups in r.json():
@@ -13,7 +13,11 @@ def get_players_info(r):
 
         name = setups['setup_info']['name']
 
-        host += [questionary.Separator("--- %s %s ---" %(name, setups['session_description']))]
+        if s is True:
+            host += [questionary.Separator("--- %s ---" %(setups['session_description']))]
+            host += [name]
+        else:
+            host += [questionary.Separator("--- %s %s ---" %(name, setups['session_description']))]
         host += [setups['setup_info']['players'][0]['ip']]
         if len(setups['setup_info']['players']) == 2:
             host += [setups['setup_info']['players'][1]['ip']]
