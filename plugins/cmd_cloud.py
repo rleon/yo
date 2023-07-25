@@ -30,8 +30,8 @@ def calculate_extend_delta(current_expire):
 
 def extend_setups(r, headers):
     t = Texttable(max_width=0)
-    t.set_header_align(["l", "l", "l"])
-    t.header(('Name', 'Before', 'After'))
+    t.set_header_align(["l", "l", "l", "l"])
+    t.header(('Name', 'Description', 'Before', 'After'))
     result = []
     for setups in r.json():
         if setups['status'] != 'active':
@@ -45,7 +45,8 @@ def extend_setups(r, headers):
 
         data = {'name' : name, 'id' : _id, 'timeout': hours}
         ext = requests.post('http://linux-cloud.mellanox.com/extend_lock', data=data, headers=headers)
-        result.append((name, get_local_strtime(ext.json()['old_expiration_time']),
+        result.append((name, setups['session_description'],
+                       get_local_strtime(ext.json()['old_expiration_time']),
                        get_local_strtime(ext.json()['new_expiration_time'])))
 
     t.add_rows(result, False)
@@ -59,14 +60,15 @@ def restart_vm(r, headers, n):
 
 def list_user_setups(r):
     t = Texttable(max_width=0)
-    t.set_header_align(["l", "l", "l"])
-    t.header(('Name', 'Order', 'Expire'))
+    t.set_header_align(["l", "l", "l", "l"])
+    t.header(('Name', 'Description', 'Order', 'Expire'))
     data = []
     for setups in r.json():
         if setups['status'] != 'active':
             continue
 
         data.append((setups['setup_info']['name'],
+                     setups['session_description'],
                      get_local_strtime(setups['order_time'], True),
                      get_local_strtime(setups['expiration_time'], True)))
 
