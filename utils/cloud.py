@@ -24,6 +24,18 @@ def get_players_info(r, s=False):
 
     return host
 
+def get_sessions_info(r):
+    headers = get_base_headers()
+    host = []
+    for setups in r.json():
+        if setups['status'] != 'active':
+            continue
+
+        host += [questionary.Separator("--- %s ---" %(setups['session_description']))]
+        host += [setups['setup_info']['name']]
+
+    return host
+
 def get_players_data(r, n):
     name = None
     for setups in r.json():

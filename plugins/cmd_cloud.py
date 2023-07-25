@@ -1,6 +1,6 @@
 """YO cloud tools
 """
-from utils.cloud import get_user_sessions, get_base_headers, get_players_data, get_players_info
+from utils.cloud import get_user_sessions, get_base_headers, get_players_data, get_players_info, get_sessions_info
 
 import math
 import requests
@@ -28,7 +28,9 @@ def calculate_extend_delta(current_expire):
     h = difference.days * 24 + math.ceil(difference.seconds/3600)
     return 96 - h
 
-def extend_setups(r, headers):
+def extend_setups(r):
+    headers = get_base_headers()
+
     t = Texttable(max_width=0)
     t.set_header_align(["l", "l", "l", "l"])
     t.header(('Name', 'Description', 'Before', 'After'))
@@ -52,7 +54,9 @@ def extend_setups(r, headers):
     t.add_rows(result, False)
     print(t.draw())
 
-def restart_vm(r, headers, n):
+def restart_vm(r, n):
+    headers = get_base_headers()
+
     _id, players, host = get_players_data(r, n)
     data = {"players_info": {host: players}}
     ext = requests.post('http://linux-cloud.mellanox.com/api/session/reload_setup/%s' %(_id),
@@ -75,6 +79,13 @@ def list_user_setups(r):
     t.add_rows(data, False)
     print(t.draw())
 
+def edit_session_description(r, description, n):
+    headers = get_base_headers()
+
+    _id, players, host = get_players_data(r, n)
+    ext = requests.put('http://linux-cloud.mellanox.com/api/%s/description/%s'
+                       %(str(_id), str(description[0])), headers=headers)
+
 #--------------------------------------------------------------------------------------------------------
 def args_cloud(parser):
     parser.add_argument(
@@ -84,6 +95,12 @@ def args_cloud(parser):
             action="store_true",
             help="Extend setup",
             default=False)
+    parser.add_argument(
+            "-d",
+            "--edit-description",
+            dest="description",
+            help="Edit session description",
+            nargs=1)
     parser.add_argument(
             "-r",
             "--restart-vm",
@@ -96,10 +113,15 @@ def cmd_cloud(args):
     """Manage sessions"""
 
     r = get_user_sessions()
-    headers = get_base_headers()
+
+    if args.description:
+        sessions = get_sessions_info(r)
+        choice = questionary.select("Which session to edit?", sessions).ask()
+        edit_session_description(r, args.description, choice)
+        return;
 
     if args.extend:
-        extend_setups(r, headers)
+        extend_setups(r)
         return
 
     if args.restart_vm:
@@ -113,7 +135,7 @@ def cmd_cloud(args):
         if choice is None:
             exit()
 
-        restart_vm(r, headers, choice)
+        restart_vm(r, choice)
         return
 
     list_user_setups(r)
