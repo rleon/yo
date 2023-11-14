@@ -4,6 +4,7 @@ from utils.cloud import get_user_sessions, get_base_headers, get_players_info
 
 import os
 import questionary
+from utils.misc import switch_to_ssh
 
 #--------------------------------------------------------------------------------------------------------
 def args_console(parser):
@@ -12,6 +13,13 @@ def args_console(parser):
             help="Server name/ip to view console",
             const=' ',
             nargs='?')
+    parser.add_argument(
+            "-r",
+            "--reconnect",
+            dest="reconnect",
+            action="store_true",
+            help="Reconnect automatically",
+            default=False)
 
 def cmd_console(args):
     """View console"""
@@ -27,5 +35,5 @@ def cmd_console(args):
 
         args.name = choice.split(' ')[0]
 
-    cmd = ['ssh', '-t', ] + [args.name] + ['dmesg -w']
-    os.execvp(cmd[0], cmd)
+    cmd = ["dmesg -w"]
+    switch_to_ssh(args.name, args=cmd, reconnect=args.reconnect)

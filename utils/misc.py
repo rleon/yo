@@ -1,4 +1,5 @@
 import os
+import tempfile
 import subprocess
 from contextlib import contextmanager
 
@@ -41,3 +42,19 @@ def fix_gpg_key():
         subprocess.check_call(["gpg", "--card-status"],
                               stdout=subprocess.DEVNULL,
                               stderr=subprocess.DEVNULL)
+
+def switch_to_ssh(name, args=None, reconnect=False):
+    cmd = ['ssh', '-t', ] + [name]
+    if args is not None:
+        cmd = cmd + args
+    if not reconnect:
+        os.execvp(cmd[0], cmd)
+
+    with tempfile.NamedTemporaryFile("w") as f:
+        cmd = ['until'] + cmd
+        cmd += ['; do echo "Keep trying to reconnect..."; sleep 10; done']
+        f.write(' '.join(cmd))
+        f.flush()
+
+        cmd = ['sh', f.name]
+        os.execvp(cmd[0], cmd)

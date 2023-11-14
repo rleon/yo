@@ -4,6 +4,7 @@ from utils.cloud import get_user_sessions, get_base_headers, get_players_info
 
 import os
 import questionary
+from utils.misc import switch_to_ssh
 
 #--------------------------------------------------------------------------------------------------------
 def args_connect(parser):
@@ -12,6 +13,13 @@ def args_connect(parser):
             help="Server name/ip to run repro",
             const=' ',
             nargs='?')
+    parser.add_argument(
+            "-r",
+            "--reconnect",
+            dest="reconnect",
+            action="store_true",
+            help="Reconnect automatically",
+            default=False)
 
 def cmd_connect(args):
     """Connect to server"""
@@ -27,5 +35,4 @@ def cmd_connect(args):
 
         args.name = choice.split(' ')[0]
 
-    cmd = ['ssh', '-t', ] + [args.name]
-    os.execvp(cmd[0], cmd)
+    switch_to_ssh(args.name, reconnect=args.reconnect)
