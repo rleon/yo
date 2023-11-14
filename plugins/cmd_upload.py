@@ -9,7 +9,7 @@ def upload_branches(upload, force=False, dry_run=False):
     for remote, branches in upload.items():
         b = [];
         for branch in branches:
-            if git_same_content(branch[0], "%s/%s" % (remote, branch[1])):
+            if git_same_content(branch[0], "%s/%s" % (remote, branch[1]), strict=True):
                 continue
 
             b += [ "%s:%s" % (branch[0], branch[1])]

@@ -80,12 +80,18 @@ def git_push(remote, branches, force=False, dry_run=False):
 
     git_call(cmd + [remote] + branches)
 
-def git_same_content(a, b):
+def git_same_content(a, b, strict=False):
     if a == b:
         return True
 
     try:
-        git_call(["diff", "--quiet", "%s..%s" % (a, b)])
+        if strict:
+            l = git_current_sha(a)
+            r = git_current_sha(b)
+            if l != r:
+                return False
+        else:
+            git_call(["diff", "--quiet", "%s..%s" % (a, b)])
     except subprocess.CalledProcessError:
         return False
 
@@ -130,8 +136,8 @@ def git_reset_branch(commit, verbose=False):
 def git_current_branch():
     return git_output(["symbolic-ref", "--short", "-q", "HEAD"]).decode()
 
-def git_current_sha():
-    return git_output(["rev-parse", "--short", "-q", "HEAD"]).decode()
+def git_current_sha(branch="HEAD"):
+    return git_output(["rev-parse", "--short", "-q", branch]).decode()
 
 def git_checkout_branch(branch=None, verbose=False):
     """Checkout specific branch and return previous branch"""
