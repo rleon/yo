@@ -13,6 +13,7 @@ cmd_modules = {
     "cmd_setup",
     "cmd_update",
     "cmd_upload",
+    "cmd_deploy",
     "cmd_push",
     "cmd_web",
     "cmd_cloud",

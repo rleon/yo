@@ -97,6 +97,17 @@ def git_same_content(a, b, strict=False):
 
     return True
 
+def git_push_branches(branches, force=False, dry_run=False, remote=None):
+    b = [];
+    for branch in branches:
+        if remote and git_same_content(branch[0], "%s/%s" % (remote, branch[1]), strict=True):
+            continue
+
+        b += [ "%s:%s" % (branch[0], branch[1])]
+
+    if b:
+        git_push(remote, b, force, dry_run)
+
 def git_branch_contains(local_br, remote_br):
     res = git_output(["branch", "--contains", "%s" % (remote_br),
                       "--format=%(refname:short)"],

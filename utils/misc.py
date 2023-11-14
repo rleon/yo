@@ -58,3 +58,7 @@ def switch_to_ssh(name, args=None, reconnect=False):
 
         cmd = ['sh', f.name]
         os.execvp(cmd[0], cmd)
+
+def exec_on_remote(name, args):
+    cmd = ['ssh', '-t', '-q',] + [name] + args
+    subprocess.call(cmd)

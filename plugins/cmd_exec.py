@@ -1,9 +1,9 @@
 """YO cloud tools
 """
 from utils.cloud import get_user_sessions, get_base_headers, get_players_info
+from utils.misc import exec_on_remote
 
 import os
-import subprocess
 import questionary
 
 #--------------------------------------------------------------------------------------------------------
@@ -33,5 +33,4 @@ def cmd_exec(args):
 
         args.name = choice.split(' ')[0]
 
-    cmd = ['ssh', '-t', '-q',] + [args.name] + args.cmd
-    subprocess.call(cmd)
+    exec_on_remote(args.name, args.cmd)
