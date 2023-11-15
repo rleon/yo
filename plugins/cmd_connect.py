@@ -14,11 +14,10 @@ def args_connect(parser):
             const=' ',
             nargs='?')
     parser.add_argument(
-            "-r",
-            "--reconnect",
-            dest="reconnect",
+            "--no-reconnect",
+            dest="no_reconnect",
             action="store_true",
-            help="Reconnect automatically",
+            help="Disable automatic reconnect",
             default=False)
 
 def cmd_connect(args):
@@ -35,4 +34,4 @@ def cmd_connect(args):
 
         args.name = choice.split(' ')[0]
 
-    switch_to_ssh(args.name, reconnect=args.reconnect)
+    switch_to_ssh(args.name, reconnect=not args.no_reconnect)

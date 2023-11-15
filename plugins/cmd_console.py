@@ -14,11 +14,10 @@ def args_console(parser):
             const=' ',
             nargs='?')
     parser.add_argument(
-            "-r",
-            "--reconnect",
-            dest="reconnect",
+            "--no-reconnect",
+            dest="no_reconnect",
             action="store_true",
-            help="Reconnect automatically",
+            help="Disable automatic reconnect",
             default=False)
 
 def cmd_console(args):
@@ -36,4 +35,4 @@ def cmd_console(args):
         args.name = choice.split(' ')[0]
 
     cmd = ["dmesg -w"]
-    switch_to_ssh(args.name, args=cmd, reconnect=args.reconnect)
+    switch_to_ssh(args.name, args=cmd, reconnect=not args.no_reconnect)

@@ -31,4 +31,4 @@ def cmd_push(args):
 
 
     cmd = ["dmesg -w"]
-    switch_to_ssh(args.name, args=cmd, reconnect=args.reconnect)
+    switch_to_ssh(args.name, args=cmd, reconnect=False)
