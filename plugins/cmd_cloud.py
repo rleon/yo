@@ -94,9 +94,10 @@ def auto_extend(install):
         os.system("sudo rm -rf /etc/cron.daily/yo-cloud-extend")
         return
 
-    with tempfile.NamedTemporaryFile('w', delete=False) as f:
+    with tempfile.NamedTemporaryFile('w') as f:
         f.write("#!/usr/bin/sh\n")
-        f.write("sudo -u %s %s/../yo cloud --extend\n" % (os.getlogin(), os.path.dirname(__file__)))
+        root_dir = os.path.dirname((os.path.dirname(__file__) + ".."))
+        f.write("sudo -u %s %s/yo cloud --extend\n" % (os.getlogin(), root_dir))
         f.flush()
         os.chmod(f.name, os.stat(f.name).st_mode | stat.S_IEXEC)
         os.system("sudo cp -f %s /etc/cron.daily/yo-cloud-extend" % (f.name))
