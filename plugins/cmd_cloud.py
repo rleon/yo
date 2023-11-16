@@ -1,6 +1,7 @@
 """YO cloud tools
 """
-from utils.cloud import get_user_sessions, get_base_headers, get_players_data, get_players_info, get_sessions_info
+from utils.misc import *
+from utils.cloud import *
 
 import os
 import stat
@@ -96,8 +97,7 @@ def auto_extend(install):
 
     with tempfile.NamedTemporaryFile('w') as f:
         f.write("#!/usr/bin/sh\n")
-        root_dir = os.path.dirname((os.path.dirname(__file__) + ".."))
-        f.write("sudo -u %s %s/yo cloud --extend\n" % (os.getlogin(), root_dir))
+        f.write("sudo -u %s %s/yo cloud --extend\n" % (os.getlogin(), yo_root()))
         f.flush()
         os.chmod(f.name, os.stat(f.name).st_mode | stat.S_IEXEC)
         os.system("sudo cp -f %s /etc/cron.daily/yo-cloud-extend" % (f.name))

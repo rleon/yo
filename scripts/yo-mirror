@@ -1,0 +1,47 @@
+#!/bin/sh
+
+mirror() {
+	local USER=`whoami`
+	local FROM="$HOME/src"
+	local TO="/swgwork/$USER/src"
+	local RSYNC_BIN="/swgwork/$USER/bin/rsync"
+	local BASE_DIR=$(pwd)
+
+	for D in $FROM/*; do
+		if [ ! -d "${D}" ]; then
+			continue
+		fi
+		
+		local DIR=$(basename ${D})
+
+		if [ "$#" -eq 2 ] && [ "$DIR" != "$2" ]; then
+			continue
+		fi
+
+		echo "$DIR:"
+		if [ -d "${D}/.git" ]; then
+			ssh $1 "mkdir -p $TO/$DIR/"
+			ssh $1 "[ ! -d $TO/$DIR/.git/ ] && git init $TO/$DIR"
+			rsync ${D}/.git/config $1:$TO/$DIR/.git/config
+			pushd ${D} < /dev/null >/dev/null 2>&1
+
+			local LOG=$(git push --mirror "leonro@$1:$TO/$DIR" 2>&1)
+			popd < /dev/null >/dev/null 2>&1
+			echo $LOG
+			if [ $(grep -c "Everything up-to-date" <<< $LOG) -eq 1 ]; then
+				continue
+			else
+				ssh $1 "nohup git -C $TO/$DIR/ reset --hard HEAD < /dev/null >/dev/null 2>&1"
+				ssh $1 "nohup git -C $TO/$DIR/ clean -f -d < /dev/null >/dev/null 2>&1 &"
+			fi
+		else
+			rsync -amz --no-o --no-g --no-p \
+				--info=progress2 --inplace --force \
+				--delete --delete-excluded ${D} $1:$TO \
+				--rsync-path=$RSYNC_BIN --chown=$USER:mtl;
+		fi
+	done
+	cd $BASE_DIR
+}
+
+mirror "$@"

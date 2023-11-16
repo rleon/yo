@@ -1,0 +1,20 @@
+#!/bin/bash
+USER=`whoami`
+
+SRC="/w"
+if [ "$#" -gt 0 ]; then
+	BRANCH=$1
+else
+	BRANCH=rdma-next
+fi
+
+export CCACHE_DIR=$SRC/ccache
+cd $SRC/kernel
+git checkout $BRANCH
+
+make CC='ccache gcc' -s olddefconfig -j 64
+echo "Started silent compilation"
+make -s -j 64
+sudo make modules_install headers_install install
+sudo grubby --set-default $(ls -t -1 /boot/vmlinuz-* | head -1)
+sudo reboot

@@ -62,3 +62,6 @@ def switch_to_ssh(name, args=None, reconnect=False):
 def exec_on_remote(name, args):
     cmd = ['ssh', '-t', '-q',] + [name] + args
     subprocess.call(cmd)
+
+def yo_root():
+    return os.path.dirname((os.path.dirname(__file__) + ".."))
