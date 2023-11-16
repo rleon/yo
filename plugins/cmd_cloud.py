@@ -2,8 +2,11 @@
 """
 from utils.cloud import get_user_sessions, get_base_headers, get_players_data, get_players_info, get_sessions_info
 
+import os
+import stat
 import math
 import requests
+import tempfile
 import questionary
 from texttable import Texttable
 from datetime import datetime
@@ -86,6 +89,18 @@ def edit_session_description(r, description, n):
     ext = requests.put('http://linux-cloud.mellanox.com/api/%s/description/%s'
                        %(str(_id), str(description[0])), headers=headers)
 
+def auto_extend(install):
+    if not install:
+        os.system("sudo rm -rf /etc/cron.daily/yo-cloud-extend")
+        return
+
+    with tempfile.NamedTemporaryFile('w', delete=False) as f:
+        f.write("#!/usr/bin/sh\n")
+        f.write("sudo -u %s %s/../yo cloud --extend\n" % (os.getlogin(), os.path.dirname(__file__)))
+        f.flush()
+        os.chmod(f.name, os.stat(f.name).st_mode | stat.S_IEXEC)
+        os.system("sudo cp -f %s /etc/cron.daily/yo-cloud-extend" % (f.name))
+
 #--------------------------------------------------------------------------------------------------------
 def args_cloud(parser):
     parser.add_argument(
@@ -109,11 +124,22 @@ def args_cloud(parser):
             help="Restart VM",
             const=' ',
             nargs='?')
+    parser.add_argument(
+            "--auto-extend",
+            dest="auto_extend",
+            metavar="on|off",
+            choices=['on', 'off'],
+            help="Set periodic job to automatically extend setups",
+            nargs=1)
 
 def cmd_cloud(args):
     """Manage sessions"""
 
     r = get_user_sessions()
+
+    if args.auto_extend:
+        auto_extend(args.auto_extend == ['on'])
+        return
 
     if args.description:
         sessions = get_sessions_info(r)
