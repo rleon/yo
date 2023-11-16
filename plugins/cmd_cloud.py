@@ -105,6 +105,7 @@ def args_cloud(parser):
             "-r",
             "--restart-vm",
             dest="restart_vm",
+            metavar="VM",
             help="Restart VM",
             const=' ',
             nargs='?')
