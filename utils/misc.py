@@ -59,9 +59,15 @@ def switch_to_ssh(name, args=None, reconnect=False):
         cmd = ['sh', f.name]
         os.execvp(cmd[0], cmd)
 
-def exec_on_remote(name, args):
-    cmd = ['ssh', '-t', '-q',] + [name] + args
-    subprocess.call(cmd)
+def exec_on_remote(name, args=None, script=None):
+    cmd = ['ssh', '-t', '-q',] + [name]
+    if args is not None:
+        cmd = cmd + args
+
+    fstdin = None
+    if script is not None:
+        fstdin = script
+    subprocess.run(cmd, stdin=fstdin)
 
 def yo_root():
     return os.path.dirname((os.path.dirname(__file__) + ".."))

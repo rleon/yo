@@ -17,17 +17,14 @@ def is_ipv4(string):
         return False
 
 def rebuild_kernel(name, br):
-    subprocess.call(['rsync', '-amz', '--no-o', '--no-g',
-                     '--no-p', '--info=progress2', '--inplace',
-                     '--force', '--delete-excluded',
-                     '%s/scripts' % (yo_root()), '%s:/w' % (name)])
-    exec_on_remote(name, ["/w/scripts/yo-kbuild", br])
+    with open("%s/scripts/yo-kbuild" % (yo_root()), "r") as f:
+        exec_on_remote(name, args=["_BRANCH=%s" % (br), "bash"], script=f)
 
 
 def init_setup(name, br):
-    subprocess.call(['%s/scripts/yo-mirror' % (yo_root()), name, 'kernel'])
-    subprocess.call(['scp', '%s/scripts/yo-cloud-init' % (yo_root()), '%s:/tmp/' % (name)])
-    exec_on_remote(name, ["/tmp/yo-cloud-init"])
+    subprocess.run(['%s/scripts/yo-mirror' % (yo_root()), name, 'kernel'])
+    with open('%s/scripts/yo-cloud-init' % (yo_root()), "r") as f:
+        exec_on_remote(name, args=["bash"], script=f)
     rebuild_kernel(name, br)
 
 #--------------------------------------------------------------------------------------------------------

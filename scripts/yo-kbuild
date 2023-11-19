@@ -2,15 +2,10 @@
 USER=`whoami`
 
 SRC="/w"
-if [ "$#" -gt 0 ]; then
-	BRANCH=$1
-else
-	BRANCH=rdma-next
-fi
 
 export CCACHE_DIR=$SRC/ccache
 cd $SRC/kernel
-git checkout $BRANCH
+git checkout $_BRANCH
 
 make CC='ccache gcc' -s olddefconfig -j 64
 echo "Started silent compilation"
