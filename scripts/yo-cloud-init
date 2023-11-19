@@ -14,13 +14,13 @@ git clone /swgwork/$USER/src/kernel $SRC/kernel
 cp /.autodirect/l/upstream/common_new/kernels/latest-for-upstream-debug/CONFIGS/config.x86_64.debug $SRC/kernel/.config
 #less /proc/config.gz > $SRC/kernel/.config
 
-rsync -az /swgwork/$USER/ccache /w
+cp -r /swgwork/$USER/ccache /w
 sudo systemctl enable crond
 sudo systemctl start crond
 
 TMPFILE=$(mktemp)
 echo '#!/usr/bin/sh' > $TMPFILE
-echo 'sudo -u '$USER' rsync -az /w/ccache /swgwork/'$USER'' >> $TMPFILE
+echo 'sudo -u '$USER' rsync -am --inplace /w/ccache /swgwork/'$USER'' >> $TMPFILE
 sudo cp $TMPFILE /etc/cron.daily/ccache-sync
 sudo chmod a+x /etc/cron.daily/ccache-sync
 rm -rf $TMPFILE

@@ -35,7 +35,7 @@ mirror() {
 				ssh $1 "nohup git -C $TO/$DIR/ clean -f -d < /dev/null >/dev/null 2>&1 &"
 			fi
 		else
-			rsync -amz --no-o --no-g --no-p \
+			rsync -am --no-o --no-g --no-p \
 				--info=progress2 --inplace --force \
 				--delete --delete-excluded ${D} $1:$TO \
 				--rsync-path=$RSYNC_BIN --chown=$USER:mtl;
