@@ -10,6 +10,9 @@ git checkout $_BRANCH
 make CC='ccache gcc' -s olddefconfig -j 64
 echo "Started silent compilation"
 make -s -j 64
-sudo make modules_install headers_install install
+sudo make modules_install install
+if [ "$_WITH_H" == "True" ]; then
+	sudo make headers_install
+fi
 sudo grubby --set-default $(ls -t -1 /boot/vmlinuz-* | head -1)
 sudo reboot

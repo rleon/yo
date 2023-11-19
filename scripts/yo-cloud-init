@@ -12,7 +12,26 @@ git clone /swgwork/$USER/src/rdma-core $SRC/rdma-core
 
 git clone /swgwork/$USER/src/kernel $SRC/kernel
 cp /.autodirect/l/upstream/common_new/kernels/latest-for-upstream-debug/CONFIGS/config.x86_64.debug $SRC/kernel/.config
-#less /proc/config.gz > $SRC/kernel/.config
+
+TMPFILE=$(mktemp)
+cat <<EOF > $TMPFILE
+CONFIG_SUNRPC=n
+CONFIG_SUNRPC_GSS=n
+CONFIG_SUNRPC_BACKCHANNEL=n
+CONFIG_SUNRPC_XPRT_RDMA=n
+CONFIG_RDS=n
+CONFIG_RDS_RDMA=n
+CONFIG_OPENVSWITCH=n
+CONFIG_OPENVSWITCH_GRE=n
+CONFIG_OPENVSWITCH_VXLAN=n
+CONFIG_OPENVSWITCH_GENEVE=n
+CONFIG_NET_NSH=n
+CONFIG_NETDEVSIM=n
+CONFIG_TEST_BPF=n
+CONFIG_BPF_EVENTS=n
+EOF
+$SRC/kernel/scripts/kconfig/merge_config.sh -y -m $SRC/.config $TMPFILE
+rm -rf $TMPFILE
 
 cp -r /swgwork/$USER/ccache /w
 sudo systemctl enable crond
