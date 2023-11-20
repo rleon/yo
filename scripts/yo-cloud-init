@@ -27,10 +27,8 @@ CONFIG_OPENVSWITCH_VXLAN=n
 CONFIG_OPENVSWITCH_GENEVE=n
 CONFIG_NET_NSH=n
 CONFIG_NETDEVSIM=n
-CONFIG_TEST_BPF=n
-CONFIG_BPF_EVENTS=n
 EOF
-$SRC/kernel/scripts/kconfig/merge_config.sh -y -m $SRC/.config $TMPFILE
+$SRC/kernel/scripts/kconfig/merge_config.sh -y -m $SRC/kernel/.config $TMPFILE
 rm -rf $TMPFILE
 
 cp -r /swgwork/$USER/ccache /w

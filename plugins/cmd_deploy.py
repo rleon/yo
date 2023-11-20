@@ -87,7 +87,7 @@ def cmd_deploy(args):
     if is_ipv4(args.init) or args.init == ' ':
         # Special case, where user provided --init without any branch
         # followed by VM address
-        init_setup(args.name, br)
+        init_setup(args.init, br)
         exit()
     elif args.init is not None:
         init_setup(args.name, args.init)
