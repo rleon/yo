@@ -5,7 +5,7 @@ SRC="/w"
 
 export CCACHE_DIR=$SRC/ccache
 cd $SRC/kernel
-git checkout $_BRANCH
+git checkout -f $_BRANCH
 
 make CC='ccache gcc' -s olddefconfig -j 64
 echo "Started silent compilation"
