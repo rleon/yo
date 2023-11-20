@@ -43,8 +43,8 @@ def fix_gpg_key():
                               stdout=subprocess.DEVNULL,
                               stderr=subprocess.DEVNULL)
 
-def switch_to_ssh(name, args=None, reconnect=False):
-    cmd = ['ssh', '-t', ] + [name]
+def switch_to_ssh(name, args=None, reconnect=False, clear=False):
+    cmd = ['ssh', '-t', '-o', 'PreferredAuthentications=publickey',] + [name]
     if args is not None:
         cmd = cmd + args
     if not reconnect:
@@ -52,7 +52,10 @@ def switch_to_ssh(name, args=None, reconnect=False):
 
     with tempfile.NamedTemporaryFile("w") as f:
         cmd = ['until'] + cmd
-        cmd += ['; do echo "Keep trying to reconnect..."; sleep 10; done']
+        if clear:
+            cmd += ['; do clear; echo "Keep trying to reconnect..."; sleep 10; done']
+        else:
+            cmd += ['; do echo "Keep trying to reconnect..."; sleep 10; done']
         f.write(' '.join(cmd))
         f.flush()
 
@@ -60,7 +63,7 @@ def switch_to_ssh(name, args=None, reconnect=False):
         os.execvp(cmd[0], cmd)
 
 def exec_on_remote(name, args=None, script=None):
-    cmd = ['ssh', '-t', '-q',] + [name]
+    cmd = ['ssh', '-t', '-q', '-o', 'PreferredAuthentications=publickey',] + [name]
     if args is not None:
         cmd = cmd + args
 

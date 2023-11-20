@@ -35,4 +35,5 @@ def cmd_console(args):
         args.name = choice.split(' ')[0]
 
     cmd = ["dmesg -w"]
-    switch_to_ssh(args.name, args=cmd, reconnect=not args.no_reconnect)
+    switch_to_ssh(args.name, args=cmd,
+                  reconnect=not args.no_reconnect, clear=True)
