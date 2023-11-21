@@ -37,7 +37,10 @@ sudo systemctl start crond
 
 TMPFILE=$(mktemp)
 echo '#!/usr/bin/sh' > $TMPFILE
-echo 'sudo -u '$USER' rsync -am --inplace /w/ccache /swgwork/'$USER'' >> $TMPFILE
+echo "sudo -u "$USER" cp -a /w/ccache/? /swgwork/"$USER"/ccache" >> $TMPFILE
+echo "sudo -u "$USER" cp -a /swgwork/"$USER"/ccache/? /w/ccache" >> $TMPFILE
+sudo -u leonro cp -a /swgwork/leonro/ccache/? /w/ccache
+
 sudo cp $TMPFILE /etc/cron.daily/ccache-sync
 sudo chmod a+x /etc/cron.daily/ccache-sync
 rm -rf $TMPFILE
