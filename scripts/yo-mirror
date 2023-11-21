@@ -25,7 +25,7 @@ mirror() {
 			rsync --rsync-path=$RSYNC_BIN ${D}/.git/config $1:$TO/$DIR/.git/config
 			pushd ${D} < /dev/null >/dev/null 2>&1
 
-			local LOG=$(git push --mirror "leonro@$1:$TO/$DIR" 2>&1)
+			local LOG=$(git push --mirror "$USER@$1:$TO/$DIR" 2>&1)
 			popd < /dev/null >/dev/null 2>&1
 			echo $LOG
 			if [ $(grep -c "Everything up-to-date" <<< $LOG) -eq 1 ]; then
