@@ -31,16 +31,17 @@ EOF
 $SRC/kernel/scripts/kconfig/merge_config.sh -y -m $SRC/kernel/.config $TMPFILE
 rm -rf $TMPFILE
 
-cp -r /swgwork/$USER/ccache /w
+mkdir /w/ccache
+#cp -r /swgwork/$USER/ccache /w
 sudo systemctl enable crond
 sudo systemctl start crond
 
-TMPFILE=$(mktemp)
-echo '#!/usr/bin/sh' > $TMPFILE
-echo "sudo -u "$USER" cp -a /w/ccache/? /swgwork/"$USER"/ccache" >> $TMPFILE
-echo "sudo -u "$USER" cp -a /swgwork/"$USER"/ccache/? /w/ccache" >> $TMPFILE
-sudo -u leonro cp -a /swgwork/leonro/ccache/? /w/ccache
+#TMPFILE=$(mktemp)
+#echo '#!/usr/bin/sh' > $TMPFILE
+#echo "sudo -u "$USER" cp -a /w/ccache/? /swgwork/"$USER"/ccache" >> $TMPFILE
+#echo "sudo -u "$USER" cp -a /swgwork/"$USER"/ccache/? /w/ccache" >> $TMPFILE
+#sudo -u leonro cp -a /swgwork/leonro/ccache/? /w/ccache
 
-sudo cp $TMPFILE /etc/cron.daily/ccache-sync
-sudo chmod a+x /etc/cron.daily/ccache-sync
-rm -rf $TMPFILE
+#sudo cp $TMPFILE /etc/cron.daily/ccache-sync
+#sudo chmod a+x /etc/cron.daily/ccache-sync
+#rm -rf $TMPFILE
