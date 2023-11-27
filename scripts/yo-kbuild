@@ -7,7 +7,11 @@ export CCACHE_DIR=$SRC/ccache
 cd $SRC/kernel
 git checkout -f $_BRANCH
 
-make CC='ccache gcc' -s olddefconfig -j 64
+if [ "$_CLEAN" == "True" ]; then
+	sudo make clean
+fi
+
+make -s olddefconfig -j 64
 echo "Started silent compilation"
 make -s -j 64
 sudo make modules_install install

@@ -16,16 +16,17 @@ def is_ipv4(string):
     except ValueError:
         return False
 
-def rebuild_kernel(name, br, headers):
+def rebuild_kernel(name, br, headers, clean):
     with open("%s/scripts/yo-kbuild" % (yo_root()), "r") as f:
-        exec_on_remote(name, args=["_BRANCH=%s" % (br), "_WITH_H=%s" % (headers), "bash"], script=f)
+        exec_on_remote(name, args=["_BRANCH=%s" % (br), "_WITH_H=%s" % (headers),
+                                   "_CLEAN=%s" % (clean), "bash"], script=f)
 
 
 def init_setup(name, br):
     subprocess.run(['%s/scripts/yo-mirror' % (yo_root()), name, 'kernel'])
     with open('%s/scripts/yo-cloud-init' % (yo_root()), "r") as f:
         exec_on_remote(name, args=["bash"], script=f)
-    rebuild_kernel(name, br, True)
+    rebuild_kernel(name, br, True, False)
 
 #--------------------------------------------------------------------------------------------------------
 def args_deploy(parser):
@@ -59,6 +60,12 @@ def args_deploy(parser):
             dest="with_headers",
             action="store_true",
             help="Install kernel headers too",
+            default=False)
+    parser.add_argument(
+            "--with-clean",
+            dest="clean",
+            action="store_true",
+            help="Call to make clean",
             default=False)
 
 def cmd_deploy(args):
@@ -100,4 +107,4 @@ def cmd_deploy(args):
     if args.no_install or args.dry_run:
         exit()
 
-    rebuild_kernel(args.name, br, args.with_headers)
+    rebuild_kernel(args.name, br, args.with_headers, args.clean)
