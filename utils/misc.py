@@ -44,7 +44,7 @@ def fix_gpg_key():
                               stderr=subprocess.DEVNULL)
 
 def switch_to_ssh(name, args=None, reconnect=False, clear=False):
-    cmd = ['ssh', '-t', '-o', 'PreferredAuthentications=publickey',] + [name]
+    cmd = ['ssh', '-4', '-t', '-o', 'PreferredAuthentications=publickey',] + [name]
     if args is not None:
         cmd = cmd + args
     if not reconnect:
@@ -63,7 +63,7 @@ def switch_to_ssh(name, args=None, reconnect=False, clear=False):
         os.execvp(cmd[0], cmd)
 
 def exec_on_remote(name, args=None, script=None):
-    cmd = ['ssh', '-t', '-q', '-o', 'PreferredAuthentications=publickey',] + [name]
+    cmd = ['ssh', '-4', '-t', '-q', '-o', 'PreferredAuthentications=publickey',] + [name]
     if args is not None:
         cmd = cmd + args
 
