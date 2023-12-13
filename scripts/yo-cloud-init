@@ -73,3 +73,9 @@ sudo systemctl stop docker.socket
 sudo systemctl disable docker.socket
 sudo systemctl stop docker
 sudo systemctl disable docker
+
+TMPFILE=$(mktemp)
+echo 'vm.nr_hugepages = 2' > $TMPFILE
+sudo cp $TMPFILE /etc/sysctl.d/60-yo.conf
+sudo chmod a+r /etc/sysctl.d/60-yo.conf
+rm -rf $TMPFILE
