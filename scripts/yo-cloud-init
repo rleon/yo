@@ -67,3 +67,9 @@ sudo systemctl start crond
 #sudo cp $TMPFILE /etc/cron.daily/ccache-sync
 #sudo chmod a+x /etc/cron.daily/ccache-sync
 #rm -rf $TMPFILE
+
+# We don't need docker inside testing VM
+sudo systemctl stop docker.socket
+sudo systemctl disable docker.socket
+sudo systemctl stop docker
+sudo systemctl disable docker
