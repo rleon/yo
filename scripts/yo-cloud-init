@@ -50,7 +50,7 @@ CONFIG_KEXEC_FILE=n
 CONFIG_KVM_AMD=n
 CONFIG_SECURITY=n
 EOF
-$SRC/kernel/scripts/kconfig/merge_config.sh -y -m $SRC/kernel/.config $TMPFILE
+$SRC/kernel/scripts/kconfig/merge_config.sh -y -m -Q $SRC/kernel/.config $TMPFILE
 rm -rf $TMPFILE
 
 mkdir /w/ccache
