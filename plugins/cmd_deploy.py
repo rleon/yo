@@ -13,7 +13,7 @@ def is_ipv4(string):
     try:
         ipaddress.IPv4Network(string)
         return True
-    except ValueError:
+    except ipaddress.AddressValueError:
         return False
 
 def rebuild_kernel(name, br, headers, clean):
@@ -92,7 +92,7 @@ def cmd_deploy(args):
         args.name = choice.split(' ')[0]
 
     br = "%s" % (git_current_branch())
-    if is_ipv4(args.init) or args.init == ' ':
+    if is_ipv4(args.init):
         # Special case, where user provided --init without any branch
         # followed by VM address
         init_setup(args.init, br)
