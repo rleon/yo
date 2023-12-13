@@ -23,7 +23,8 @@ def rebuild_kernel(name, br, headers, clean):
 
 
 def init_setup(name, br):
-    subprocess.run(['%s/scripts/yo-mirror' % (yo_root()), name, 'kernel'])
+    o = subprocess.check_output(['%s/scripts/yo-mirror' % (yo_root()), 'hpchead.lab.mtl.com', 'kernel'])
+    print(o.strip().decode("utf-8"))
     with open('%s/scripts/yo-cloud-init' % (yo_root()), "r") as f:
         exec_on_remote(name, args=["bash"], script=f)
     rebuild_kernel(name, br, True, False)
