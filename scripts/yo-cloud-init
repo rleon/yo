@@ -2,6 +2,7 @@
 USER=`whoami`
 SRC="/w"
 
+sudo rm -rf /etc/yum.repos.d/docker-ce.repo
 sudo dnf install rsync dwarves ccache cronie -y
 sudo rm -rf $SRC
 
