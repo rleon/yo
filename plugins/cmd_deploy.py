@@ -26,6 +26,15 @@ def init_setup(name, br):
     o = subprocess.check_output(['%s/scripts/yo-mirror' % (yo_root()), 'hpchead.lab.mtl.com', 'kernel'])
     print(o.strip().decode("utf-8"))
     with open('%s/scripts/yo-cloud-init' % (yo_root()), "r") as f:
+        lines = []
+        with open(os.path.expanduser('~/.ssh/known_hosts'), "r") as sr:
+            lines = sr.readlines()
+        with open(os.path.expanduser('~/.ssh/known_hosts'), "w") as sw:
+            for line in lines:
+                if line.startswith(name):
+                    continue
+                sw.write(line)
+
         exec_on_remote(name, args=["bash"], script=f)
     rebuild_kernel(name, br, True, False)
 
