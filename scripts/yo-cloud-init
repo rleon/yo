@@ -79,10 +79,8 @@ echo 'vm.nr_hugepages = 2' > $TMPFILE
 sudo cp $TMPFILE /etc/sysctl.d/60-yo.conf
 sudo chmod a+r /etc/sysctl.d/60-yo.conf
 
-grep -v 'systemd-ask-password-plymouth' /usr/lib/dracut/modules.d/00systemd/module-setup.sh > $TMPFILE
-sudo cp $TMPFILE /usr/lib/dracut/modules.d/00systemd/module-setup.sh
 cat <<EOF > $TMPFILE
-omit_dracutmodules+="plymouth pollcdrom resume"
+omit_dracutmodules+=" plymouth pollcdrom resume "
 EOF
 sudo cp $TMPFILE /etc/dracut.conf.d/yo.conf
 rm -rf $TMPFILE
