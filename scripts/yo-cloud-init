@@ -72,4 +72,5 @@ cat <<EOF > $TMPFILE
 omit_dracutmodules+=" plymouth pollcdrom resume "
 EOF
 sudo cp $TMPFILE /etc/dracut.conf.d/yo.conf
+sudo dracut --regenerate-all --force
 rm -rf $TMPFILE
