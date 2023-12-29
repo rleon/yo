@@ -107,6 +107,8 @@ def cmd_deploy(args):
         init_setup(args.init, br)
         exit()
     elif args.init is not None:
+        if args.init == ' ':
+            args.init = br
         init_setup(args.name, args.init)
         exit()
 
