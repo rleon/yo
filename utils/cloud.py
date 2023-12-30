@@ -54,6 +54,7 @@ def get_players_data(r, n):
             ip2='.'.join(ip1.split('.')[:-1]) + '.' + name.split('-')[1].split('_')[0]
         except IndexError:
             # We have single node machine
+            ip1=name.split('_')[0]
             ip2=ip1
         if n is not None and name != n and ip1 != n and ip2 != n:
             name = None
@@ -62,12 +63,14 @@ def get_players_data(r, n):
         _id = setups['_id']
         host = setups['setup_info']['players'][0]['host_ip']
         players=[]
-        if name == n:
-            players = ['player1', 'player2']
-        if ip1 == n:
+        if ip1 == n or (name == n and ip1 == ip2):
             players = ['player1']
+        if ip1 == ip2:
+            break
         if ip2 == n:
             players = ['player2']
+        if name == n:
+            players = ['player1', 'player2']
         if n is not None:
             break
 
