@@ -1,6 +1,6 @@
 """YO cloud tools
 """
-from utils.cloud import get_user_sessions, get_base_headers, get_players_info
+from utils.cloud import get_user_sessions, get_players_info
 
 import os
 import questionary
