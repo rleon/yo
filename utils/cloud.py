@@ -4,96 +4,114 @@ from utils.cache import get_cloud_cache
 import requests
 import questionary
 
-def get_players_info(r, s=False):
-    headers = get_base_headers()
-    host = []
-    for setups in r.json():
-        if setups['status'] != 'active':
-            continue
+class CloudSetup:
+    def __init__(self, raw, headers):
+        self.raw = raw
+        self.headers = headers
 
-        name = setups['setup_info']['name']
+    @property
+    def id(self):
+        return self.raw['_id']
 
-        if s is True:
-            host += [questionary.Separator("--- %s ---" %(setups['session_description']))]
-            host += [name]
-        else:
-            host += [questionary.Separator("--- %s %s ---" %(name, setups['session_description']))]
-        host += [setups['setup_info']['players'][0]['ip']]
-        if len(setups['setup_info']['players']) == 2:
-            host += [setups['setup_info']['players'][1]['ip']]
+    @property
+    def name(self):
+        return self.raw['setup_info']['name']
 
-    return host
+    @property
+    def description(self):
+        return self.raw['session_description']
 
-def get_sessions_info(r):
-    headers = get_base_headers()
-    host = []
-    for setups in r.json():
-        if setups['status'] != 'active':
-            continue
+    @property
+    def expiration_time(self):
+        return self.raw['expiration_time']
 
-        host += [questionary.Separator("--- %s ---" %(setups['session_description']))]
-        host += [setups['setup_info']['name']]
+    @property
+    def order_time(self):
+        return self.raw['order_time']
 
-    return host
+    @property
+    def host(self):
+        return self.raw['setup_info']['players'][0]['host_ip']
 
-def get_players_data(r, n):
-    name = None
-    for setups in r.json():
-        if setups['status'] != 'active':
-            continue
+    def get_players(self):
+        players = [self.raw['setup_info']['players'][0]['ip']] 
+        if len(self.raw['setup_info']['players']) == 2:
+            players += [self.raw['setup_info']['players'][1]['ip']]
+        return players
 
-        if name is not None and n is None:
-            exit("You have more than one setup. Please specify VM to restart")
+    def get_player_name(self, player):
+        if player == self.raw['setup_info']['players'][0]['ip']:
+            return ['player1']
+        return ['player2']
 
-        name = setups['setup_info']['name']
-        # n can be provided in one of the following formats:
-        # 1. Setup name, e.g. 10.141.67.105-106_cx4
-        # 2. Specific IP
-        ip1=name.split('-')[0]
-        try:
-            ip2='.'.join(ip1.split('.')[:-1]) + '.' + name.split('-')[1].split('_')[0]
-        except IndexError:
-            # We have single node machine
-            ip1=name.split('_')[0]
-            ip2=ip1
-        if n is not None and name != n and ip1 != n and ip2 != n:
-            name = None
-            continue
+    def put(self, command, data):
+        return requests.put('http://linux-cloud.mellanox.com/api/%s/%s/%s'
+                       %(self.id, command, data), headers=self.headers)
 
-        _id = setups['_id']
-        host = setups['setup_info']['players'][0]['host_ip']
-        players=[]
-        if ip1 == n or (name == n and ip1 == ip2):
-            players = ['player1']
-        if ip1 == ip2:
-            break
-        if ip2 == n:
-            players = ['player2']
-        if name == n:
-            players = ['player1', 'player2']
-        if n is not None:
-            break
+    def post(self, command, data):
+        return requests.post('http://linux-cloud.mellanox.com/api/session/%s/%s'
+                             %(command, self.id), json=data, headers=self.headers)
 
-    if name is None:
-        exit("There are no setups with this info")
+class CloudSessions:
+    def __init__(self, status='active'):
+        cache = get_cloud_cache()
 
-    return _id, players, host
+        self.headers = {'Cache-Control' : 'no-cache'}
+        self.headers.update({'User-Agent' : 'Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/111.0'})
+        self.headers.update({'Referer' : 'http://linux-cloud.mellanox.com/user_sessions'})
+        self.headers.update({'Cookie': cache['cookie']})
 
-def get_base_headers():
-    cache = get_cloud_cache()
+        payload = {'user': '', 'limit': '0'}
+        r = requests.get('http://linux-cloud.mellanox.com/api/get_user_sessions',
+                         params=payload, headers=self.headers)
 
-    headers = {'Cache-Control' : 'no-cache'}
-    headers.update({'User-Agent' : 'Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/111.0'})
-    headers.update({'Referer' : 'http://linux-cloud.mellanox.com/user_sessions'})
-    headers.update({'Cookie': cache['cookie']})
+        self.data = []
+        for session in r.json():
+            if session['status'] != status:
+                continue
 
-    return headers
+            self.data += [CloudSetup(session, self.headers)]
 
-def get_user_sessions():
-    """Get user sessions"""
+    def __getitem__(self, index):
+        return self.data[index]
 
-    headers = get_base_headers()
+    def post(self, command, data):
+        return requests.post('http://linux-cloud.mellanox.com/%s' %(command),
+                             data=data, headers=self.headers)
 
-    payload = {'user': '', 'limit': '0'}
-    return requests.get('http://linux-cloud.mellanox.com/api/get_user_sessions', 
-                        params=payload, headers=headers)
+    def get_session(self, msg):
+        sessions = []
+        for setups in self.data:
+            sessions += [questionary.Separator("--- %s ---" %(setups.description))]
+            sessions += [setups.name]
+
+        res = questionary.select("Which session %s?" %(msg), sessions).ask()
+        if res is None:
+            exit()
+        return res
+
+    def get_players(self, msg):
+        host = []
+        for setups in self.data:
+            host += [questionary.Separator("--- %s %s ---" %(setups.name, setups.description))]
+            host += setups.get_players()
+            
+        res = questionary.select("Which server %s?" %(msg), host).ask()
+        if res is None:
+            exit()
+        return res
+
+    def get_setup(self, name=None, player=None):
+        for setup in self.data:
+            if name == setup.name:
+                return setup
+
+            if player is None:
+                continue
+
+            if player in setup.get_players():
+                return setup
+
+        exit("Something very bad happen")
+
+ActiveSessions=CloudSessions()

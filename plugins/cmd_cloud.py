@@ -6,9 +6,7 @@ from utils.cloud import *
 import os
 import stat
 import math
-import requests
 import tempfile
-import questionary
 from texttable import Texttable
 from datetime import datetime
 try:
@@ -32,63 +30,49 @@ def calculate_extend_delta(current_expire):
     h = difference.days * 24 + math.ceil(difference.seconds/3600)
     return 96 - h
 
-def extend_setups(r):
-    headers = get_base_headers()
-
+def extend_setups():
     t = Texttable(max_width=0)
     t.set_header_align(["l", "l", "l", "l"])
     t.header(('Name', 'Description', 'Before', 'After'))
     result = []
-    for setups in r.json():
-        if setups['status'] != 'active':
-            continue
-
-        name = setups['setup_info']['name']
-        _id = setups['_id']
-        hours = calculate_extend_delta(setups['expiration_time'])
+    for setups in ActiveSessions:
+        hours = calculate_extend_delta(setups.expiration_time)
         if hours <= 0:
             continue
 
-        data = {'name' : name, 'id' : _id, 'timeout': hours}
-        ext = requests.post('http://linux-cloud.mellanox.com/extend_lock', data=data, headers=headers)
-        result.append((name, setups['session_description'],
+        data = {'name' : setups.name, 'id' : setups.id, 'timeout': hours}
+        ext = ActiveSessions.post('extend_lock', data)
+        result.append((setups.name, setups.description,
                        get_local_strtime(ext.json()['old_expiration_time']),
                        get_local_strtime(ext.json()['new_expiration_time'])))
 
     t.add_rows(result, False)
     print(t.draw())
 
-def restart_vm(r, n):
-    headers = get_base_headers()
+def restart_vm(player=None):
+    if player is None:
+        player = ActiveSessions.get_players("to restart")
 
-    _id, players, host = get_players_data(r, n)
-    data = {"players_info": {host: players}}
-    ext = requests.post('http://linux-cloud.mellanox.com/api/session/reload_setup/%s' %(_id),
-                        json=data, headers=headers)
+    setup = ActiveSessions.get_setup(player=player)
+    data = {"players_info": {setup.host: setup.get_player_name(player)}}
+    setup.post("reload_setup", data)
 
-def list_user_setups(r):
+def list_user_setups():
     t = Texttable(max_width=0)
     t.set_header_align(["l", "l", "l", "l"])
     t.header(('Name', 'Description', 'Order', 'Expire'))
     data = []
-    for setups in r.json():
-        if setups['status'] != 'active':
-            continue
-
-        data.append((setups['setup_info']['name'],
-                     setups['session_description'],
-                     get_local_strtime(setups['order_time'], True),
-                     get_local_strtime(setups['expiration_time'], True)))
+    for setups in ActiveSessions:
+        data.append((setups.name, setups.description,
+                     get_local_strtime(setups.order_time, True),
+                     get_local_strtime(setups.expiration_time, True)))
 
     t.add_rows(data, False)
     print(t.draw())
 
-def edit_session_description(r, description, n):
-    headers = get_base_headers()
-
-    _id, players, host = get_players_data(r, n)
-    ext = requests.put('http://linux-cloud.mellanox.com/api/%s/description/%s'
-                       %(str(_id), str(description[0])), headers=headers)
+def edit_session_description(description):
+    session = ActiveSessions.get_session("to edit")
+    ActiveSessions.get_setup(name=session).put('description', description)
 
 def auto_extend(install):
     if not install:
@@ -136,34 +120,24 @@ def args_cloud(parser):
 def cmd_cloud(args):
     """Manage sessions"""
 
-    r = get_user_sessions()
-
     if args.auto_extend:
         auto_extend(args.auto_extend == ['on'])
         return
 
     if args.description:
-        sessions = get_sessions_info(r)
-        choice = questionary.select("Which session to edit?", sessions).ask()
-        edit_session_description(r, args.description, choice)
+        edit_session_description(str(args.description[0]))
         return;
 
     if args.extend:
-        extend_setups(r)
+        extend_setups()
         return
 
     if args.restart_vm:
         choice = None;
         if args.restart_vm != ' ':
             choice = args.restart_vm
-        else:
-            players = get_players_info(r, True)
-            choice = questionary.select("Which server/setup to restart?", players).ask()
 
-        if choice is None:
-            exit()
-
-        restart_vm(r, choice)
+        restart_vm(choice)
         return
 
-    list_user_setups(r)
+    list_user_setups()

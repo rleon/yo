@@ -5,7 +5,6 @@ from utils.cloud import *
 import os
 import ipaddress
 import subprocess
-import questionary
 from utils.git import *
 from utils.misc import *
 
@@ -89,16 +88,7 @@ def cmd_deploy(args):
         exit("Upload is supported for kernel tree only.")
 
     if args.name is None and not is_ipv4(args.init):
-        r = get_user_sessions()
-        players = get_players_info(r)
-        if players is None:
-            exit("There are no active setups to deploy")
-
-        choice = questionary.select("Which server to deploy?", players).ask()
-        if choice is None:
-            exit()
-
-        args.name = choice.split(' ')[0]
+        args.name = ActiveSessions.get_players("to deploy")
 
     br = "%s" % (git_current_branch())
     if is_ipv4(args.init):

@@ -1,10 +1,7 @@
 """YO cloud tools
 """
-from utils.cloud import get_user_sessions, get_players_info
-
-import os
-import questionary
 from utils.misc import switch_to_ssh
+from utils.cloud import *
 
 #--------------------------------------------------------------------------------------------------------
 def args_console(parser):
@@ -23,16 +20,7 @@ def args_console(parser):
 def cmd_console(args):
     """View console"""
     if args.name is None:
-        r = get_user_sessions()
-        players = get_players_info(r)
-        if players is None:
-            exit("There are no active setups to connect")
-
-        choice = questionary.select("Which server to connect?", players).ask()
-        if choice is None:
-            exit()
-
-        args.name = choice.split(' ')[0]
+        args.name = ActiveSessions.get_players("to get console")
 
     cmd = ["dmesg -w"]
     switch_to_ssh(args.name, args=cmd,
