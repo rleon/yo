@@ -14,12 +14,10 @@ cmd_modules = {
     "cmd_update",
     "cmd_upload",
     "cmd_deploy",
-    "cmd_push",
     "cmd_web",
     "cmd_cloud",
     "cmd_console",
     "cmd_connect",
-    "cmd_exec",
 }
 
 if __name__ == "__main__":
