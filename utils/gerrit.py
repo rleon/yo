@@ -9,7 +9,7 @@ def get_gerrit_remote():
     remotes = git_output(["remote"]).decode().split()
     for remote in remotes:
         url = git_output(["remote", "get-url", "--push", remote]).decode()
-        if ":29418/upstream/linux" in url:
+        if ":12023/upstream/linux" in url:
             return remote
 
 def get_gerrit_info(remote):
