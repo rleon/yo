@@ -30,7 +30,7 @@ def git_push_gerrit(remote, commit, branch, topic, dry_run=False):
 
 def build_and_push(remote, upto, base, branch, topic, issue, changeid, dry_run, verbose):
     git_reset_branch("%s/%s" % (remote, base), verbose)
-    log = git_simple_output(['log', '-n', '100', '--abbrev=12',
+    log = git_simple_output(['log', '-n', '10', '--abbrev=12',
                              '--format=commit %h (\"%s\")', 'HEAD..', upto])
 
     try:
