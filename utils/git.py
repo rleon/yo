@@ -123,7 +123,7 @@ def git_branch_contains(local_br, remote_br):
 
 def git_remote_update(remotes=None):
     if remotes is None:
-        remotes = ["all"]
+        remotes = []
 
     if type(remotes) is not list: remotes = [ remotes ]
 
