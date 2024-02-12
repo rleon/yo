@@ -55,7 +55,7 @@ def cmd_web(args):
 
     for review in rev.filter(*to_filter):
         if not args.results:
-            subprocess.call(['firefox', '-new-tab', '-url', review['url']])
+            subprocess.call(['xdg-open', review['url']])
             return
 
         matches = ['Code-Analysis-1', 'Kernel-Compile-1', 'Regression-Tests-1']
@@ -67,7 +67,4 @@ def cmd_web(args):
 
             if any([x in comment['message'] for x in matches]):
                 link = comment['message'].split()[-1]
-                # We call to firefox on every call on purpose as it is only way
-                # to open tab in existing firefox instance. If we provide list
-                # of urls, it will open in new window instead.
-                subprocess.call(['firefox', '-new-tab', '-url', link])
+                subprocess.call(['xdg-open', link])
