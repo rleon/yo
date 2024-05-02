@@ -18,6 +18,7 @@ cmd_modules = {
     "cmd_cloud",
     "cmd_console",
     "cmd_connect",
+    "cmd_status",
 }
 
 if __name__ == "__main__":
