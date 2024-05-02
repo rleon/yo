@@ -16,6 +16,8 @@ cp /.autodirect/l/upstream/common_new/kernels/latest-for-upstream-debug/CONFIGS/
 
 TMPFILE=$(mktemp)
 cat <<EOF > $TMPFILE
+CONFIG_DEBUG_VM=y
+CONFIG_DEBUG_PAGEALLOC=y
 CONFIG_IA32_EMULATION=y
 CONFIG_SUNRPC_XPRT_RDMA=n
 CONFIG_RDS=n
