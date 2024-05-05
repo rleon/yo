@@ -23,7 +23,7 @@ def print_patches_status(remote, changeid):
     other.add_items('limit', len(changeid))
 
     to_filter.append(other)
-    data = []
+    data = [None] * len(changeid)
     for review in rev.filter(*to_filter):
         last_updated = datetime.fromtimestamp(review['lastUpdated'])
         last_updated = last_updated.strftime("%H:%M:%S %d-%m-%Y ")
@@ -46,8 +46,8 @@ def print_patches_status(remote, changeid):
             if d['type'] == 'Regression-Tests':
                 rt = d['value']
 
-        data.append((review['number'], review.get('subject'),
-                     last_updated, bt, ca, kc, rt))
+        idx = changeid.index(review.get('id'))
+        data[idx] = ((review['number'], review.get('subject'), last_updated, bt, ca, kc, rt))
 
     t.add_rows(data, False)
     print(t.draw())
