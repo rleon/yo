@@ -75,4 +75,7 @@ def cmd_status(args):
             line = line.split(':')
             changeid += [line[1].strip()]
 
+    if not changeid:
+        exit("No patches found in the current branch.")
+
     print_patches_status(remote, changeid)
