@@ -259,3 +259,12 @@ def git_author_name():
 
 def git_author_email():
     git_simple_output(["config", "user.email"])
+
+def git_commit_exists(commit):
+    try:
+        line = git_simple_output(['rev-parse', '--quiet', '--verify', commit])
+        if line is None:
+            return False
+        return True
+    except subprocess.CalledProcessError:
+        return False
