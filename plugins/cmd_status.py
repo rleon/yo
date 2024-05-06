@@ -10,6 +10,37 @@ from datetime import datetime
 
 import vendor.gerrit as gerrit
 
+def recheck_patches(remote, changeid, issue, recheck, recheck_debug):
+    host, port, project = get_gerrit_info(remote)
+    rev = gerrit.Query(host, port)
+    if not changeid:
+        to_filter = [gerrit.OrFilter().add_items('change', issue)]
+    else:
+        to_filter = [gerrit.OrFilter().add_items('change', changeid)]
+    other = gerrit.Items()
+    other.add_items('project', project)
+    if not changeid:
+        other.add_items('limit', 1)
+        data = [None]
+    else:
+        other.add_items('limit', len(changeid))
+        data = [None] * len(changeid)
+
+    to_filter.append(other)
+    for review in rev.filter(*to_filter):
+        try:
+            review['type']
+            exit("No patches found in the current branch.")
+        except KeyError:
+            pass
+
+        r = gerrit.Review("%s,%s" %(review.get('number'), review.get('currentPatchSet').get('number')),
+                          host, port)
+        if recheck:
+            r.commit("jenkins_recheck")
+        if recheck_debug:
+            r.commit("jenkins_recheck_dbg")
+
 def print_patches_status(remote, changeid, issue):
     t = Texttable(max_width=0)
     t.set_header_align(["l", "l", "l", "l", "l", "l", "l"])
@@ -74,6 +105,19 @@ def args_status(parser):
             "issue",
             nargs='?',
             help="Gerrit issue or SHA1 to check status")
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument(
+            "--recheck",
+            dest="recheck",
+            action="store_true",
+            help="Rerun CI checks",
+            default=False)
+    group.add_argument(
+            "--recheck-debug",
+            dest="recheck_debug",
+            action="store_true",
+            help="Rerun CI verbose checks",
+            default=False)
 
 def cmd_status(args):
     """Patches status"""
@@ -105,5 +149,9 @@ def cmd_status(args):
 
     if not changeid and not args.issue:
         exit("No patches found in the current branch.")
+
+    if args.recheck or args.recheck_debug:
+        recheck_patches(remote, changeid, args.issue, args.recheck, args.recheck_debug)
+        return
 
     print_patches_status(remote, changeid, args.issue)
