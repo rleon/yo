@@ -72,23 +72,26 @@ def print_patches_status(remote, changeid, issue):
         last_updated = datetime.fromtimestamp(review['lastUpdated'])
         last_updated = last_updated.strftime("%H:%M:%S %d-%m-%Y ")
 
-        approvals = review['currentPatchSet']['approvals']
         kc = ' '
         ca = ' '
         bt = ' '
         rt = ' '
-        for d in approvals:
-            if d['type'] == 'Kernel-Compile':
-                kc = d['value']
+        try:
+            approvals = review['currentPatchSet']['approvals']
+            for d in approvals:
+                if d['type'] == 'Kernel-Compile':
+                    kc = d['value']
 
-            if d['type'] == 'Code-Analysis':
-                ca = d['value']
+                if d['type'] == 'Code-Analysis':
+                    ca = d['value']
 
-            if d['type'] == 'Bluefield-Tests':
-                bt = d['value']
+                if d['type'] == 'Bluefield-Tests':
+                    bt = d['value']
 
-            if d['type'] == 'Regression-Tests':
-                rt = d['value']
+                if d['type'] == 'Regression-Tests':
+                    rt = d['value']
+        except KeyError:
+            pass
 
         if not changeid:
             idx = 0
