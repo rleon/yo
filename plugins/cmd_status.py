@@ -99,6 +99,7 @@ def print_patches_status(remote, changeid, issue):
             idx = changeid.index(review.get('id'))
         data[idx] = ((review['number'], review.get('subject'), last_updated, bt, ca, kc, rt))
 
+    data = list(filter(None, data))
     t.add_rows(data, False)
     print(t.draw())
 
