@@ -29,23 +29,26 @@ def print_branches_status(remote, branches, changeid):
         last_updated = last_updated.strftime("%H:%M:%S %d-%m-%Y ")
 
         br = branches[changeid.index(review['id'])]
-        approvals = review['currentPatchSet']['approvals']
         kc = ' '
         ca = ' '
         bt = ' '
         rt = ' '
-        for d in approvals:
-            if d['type'] == 'Kernel-Compile':
-                kc = d['value']
+        try:
+            approvals = review['currentPatchSet']['approvals']
+            for d in approvals:
+                if d['type'] == 'Kernel-Compile':
+                    kc = d['value']
 
-            if d['type'] == 'Code-Analysis':
-                ca = d['value']
+                if d['type'] == 'Code-Analysis':
+                    ca = d['value']
 
-            if d['type'] == 'Bluefield-Tests':
-                bt = d['value']
+                if d['type'] == 'Bluefield-Tests':
+                    bt = d['value']
 
-            if d['type'] == 'Regression-Tests':
-                rt = d['value']
+                if d['type'] == 'Regression-Tests':
+                    rt = d['value']
+        except KeyError:
+            pass
 
         data.append((review['number'], br, review.get('branch'),
                      last_updated, bt, ca, kc, rt))
