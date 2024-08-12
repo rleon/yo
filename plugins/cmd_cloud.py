@@ -40,6 +40,9 @@ def extend_setups():
         if hours <= 0:
             continue
 
+        data = {'extend_justification': 'Nuh touch mi tralala'}
+        setups.put_no_api('extend_justification', data)
+
         data = {'name' : setups.name, 'id' : setups.id, 'timeout': hours}
         ext = ActiveSessions.post('extend_lock', data)
         result.append((setups.name, setups.description,

@@ -48,6 +48,10 @@ class CloudSetup:
         return requests.put('http://linux-cloud.mellanox.com/api/%s/%s/%s'
                        %(self.id, command, data), headers=self.headers)
 
+    def put_no_api(self, command, data):
+        return requests.put('http://linux-cloud.mellanox.com/session/%s/%s'
+                            %(command, self.id), json=data, headers=self.headers)
+
     def post(self, command, data):
         return requests.post('http://linux-cloud.mellanox.com/api/session/%s/%s'
                              %(command, self.id), json=data, headers=self.headers)
