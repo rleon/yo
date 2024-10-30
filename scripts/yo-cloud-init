@@ -16,8 +16,6 @@ cp /.autodirect/l/upstream/common_new/kernels/latest-for-upstream-debug/CONFIGS/
 
 TMPFILE=$(mktemp)
 cat <<EOF > $TMPFILE
-CONFIG_DEBUG_VM=y
-CONFIG_DEBUG_PAGEALLOC=y
 CONFIG_IA32_EMULATION=y
 CONFIG_SUNRPC_XPRT_RDMA=n
 CONFIG_RDS=n
@@ -54,6 +52,7 @@ CONFIG_SECURITY=n
 CONFIG_DEBUG_INFO_BTF=n
 EOF
 $SRC/kernel/scripts/kconfig/merge_config.sh -O $SRC/kernel/ -y -m -Q $SRC/kernel/.config $TMPFILE
+$SRC/kernel/scripts/kconfig/merge_config.sh -O $SRC/kernel/ -y -m -Q $SRC/kernel/.config $SRC/kernel/kernel/configs/debug.config
 
 mkdir /w/ccache
 sudo systemctl enable crond
