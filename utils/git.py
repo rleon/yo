@@ -109,7 +109,7 @@ def git_push_branches(branches, force=False, dry_run=False, remote=None):
         git_push(remote, b, force, dry_run)
 
 def git_branch_contains(local_br, remote_br):
-    res = git_output(["branch", "--contains", "%s" % (remote_br),
+    res = git_output(["branch", "-r", "--contains", "%s" % (remote_br),
                       "--format=%(refname:short)"],
                      mode="lines")
 
