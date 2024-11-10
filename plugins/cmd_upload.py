@@ -2,7 +2,7 @@
 """
 from utils.cmdline import query_yes_no
 from utils.git import *
-from utils.misc import get_project, fix_gpg_key
+from utils.misc import get_project
 from profiles import get_config
 
 def upload_branches(upload, force=False, dry_run=False):
@@ -68,8 +68,6 @@ def cmd_upload(args):
 
                     print("%s branch will use old %s" % (branch[0], branch[1]))
 
-
-    fix_gpg_key()
 
     upload_branches(config["no_force"], force=False, dry_run=args.dry_run)
     upload_branches(config["force"], force=True, dry_run=args.dry_run)

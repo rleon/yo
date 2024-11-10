@@ -31,18 +31,6 @@ def get_project(args):
     if not hasattr(args, "project"):
         exit("Failed to understand the source of this directory, Exiting...")
 
-def fix_gpg_key():
-    print("Refresh GPG key...")
-    try:
-        subprocess.check_call(["gpg", "--card-status"],
-                              stdout=subprocess.DEVNULL,
-                              stderr=subprocess.DEVNULL)
-    except subprocess.CalledProcessError:
-        subprocess.check_call(["sudo", "systemctl", "restart", "pcscd"])
-        subprocess.check_call(["gpg", "--card-status"],
-                              stdout=subprocess.DEVNULL,
-                              stderr=subprocess.DEVNULL)
-
 def switch_to_ssh(name, args=None, reconnect=False, clear=False):
     cmd = ['ssh', '-4', '-t', '-o', 'PreferredAuthentications=publickey',] + [name]
     if args is not None:
