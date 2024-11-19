@@ -44,7 +44,7 @@ def cmd_upload(args):
         exit("Upload is supported for kernel tree only.")
 
     config = get_config("upload")
-    remotes = list(config["no_force"].keys()) + list(config["force"].keys()) + list(config["extra"]["remotes"])
+    remotes = list(config["no_force"].keys()) + list(config["force"].keys())
     if not args.no_testing:
         remotes += list(config["cross_check"].keys())
         remotes += list(config["testing"].keys())

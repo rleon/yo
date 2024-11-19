@@ -1,31 +1,29 @@
 # Branches without -f push
 [no_force]
 # remote : [(local branch, remote branch)]
-origin =  [ ["dev/master", "master"]]
-ver = [["dev/master", "master"]]
-ml = [["dev/master", "master"], ["dev/mlx5-next", "mlx5-next"]]
-rdma = [["dev/wip/leon-for-next", "wip/leon-for-next"],
-          ["dev/wip/leon-for-rc", "wip/leon-for-rc"]]
+origin =  [ ["master", "master"]]
+ver = [["master", "master"]]
+ml = [["master", "master"], ["mlx5-next", "mlx5-next"]]
+rdma = [["wip/leon-for-next", "wip/leon-for-next"],
+          ["wip/leon-for-rc", "wip/leon-for-rc"]]
 
 # Branches with -f push
 [force]
 # remote : [(local branch, remote branch)]
-origin = [["dev/rdma-next", "rdma-next"],
-	  ["dev/rdma-rc", "rdma-rc"],
-         ["dev/xfrm-next", "xfrm-next"]]
+origin = [["rdma-next", "rdma-next"],
+	  ["rdma-rc", "rdma-rc"],
+         ["xfrm-next", "xfrm-next"]]
 
 [testing]
 # remote : [(local branch, remote branch)]
-ver = [["dev/testing/rdma-next", "testing/rdma-next"],
-         ["dev/testing/rdma-rc", "testing/rdma-rc"],
-         ["dev/queue-next", "queue-next"],
-         ["dev/queue-rc", "queue-rc"]]
+ver = [["testing/rdma-next", "testing/rdma-next"],
+         ["testing/rdma-rc", "testing/rdma-rc"],
+         ["queue-next", "queue-next"],
+         ["queue-rc", "queue-rc"]]
 
 # Cross check to see if local branch has updated remote branch
 [cross_check]
 # remote : [(local branch, remote branch)]
-ver = [["dev/queue-next", "testing/net-next"],
-         ["dev/queue-rc", "testing/net-rc"]]
-
-[extra]
-remotes  = ["dev"]
+ver = [["queue-next", "testing/net-next"],
+         ["queue-next", "testing/net-rc"],
+         ["queue-rc", "testing/net-rc"]]
