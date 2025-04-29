@@ -219,12 +219,15 @@ def git_merge_squash(branch, verbose=False):
         git_call(cmd + [branch])
 
 
-def git_detach_workspace(path, verbose=False):
+def git_detach_workspace(path, verbose=False, commit=None):
     cmd = ["worktree", "add", "--detach"]
     if not verbose:
         cmd += ["-q"]
+    cmd += [path]
+    if commit is not None:
+        cmd += [commit]
 
-    git_call(cmd + [path])
+    git_call(cmd)
 
 def git_worktree_prune():
     git_call(["worktree", "prune"])
