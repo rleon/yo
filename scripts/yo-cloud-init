@@ -51,8 +51,8 @@ CONFIG_KVM_AMD=n
 CONFIG_SECURITY=n
 CONFIG_DEBUG_INFO_BTF=n
 EOF
-$SRC/kernel/scripts/kconfig/merge_config.sh -O $SRC/kernel/ -y -m -Q $SRC/kernel/.config $TMPFILE
-$SRC/kernel/scripts/kconfig/merge_config.sh -O $SRC/kernel/ -y -m -Q $SRC/kernel/.config $SRC/kernel/kernel/configs/debug.config
+#$SRC/kernel/scripts/kconfig/merge_config.sh -O $SRC/kernel/ -y -m -Q $SRC/kernel/.config $TMPFILE
+#$SRC/kernel/scripts/kconfig/merge_config.sh -O $SRC/kernel/ -y -m -Q $SRC/kernel/.config $SRC/kernel/kernel/configs/debug.config
 
 mkdir /w/ccache
 sudo systemctl enable crond
