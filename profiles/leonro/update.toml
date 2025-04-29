@@ -1,4 +1,4 @@
-remotes = ["ver", "linus", "origin", "rdma", "ipsec", "ipsec-next", "ml", "net", "net-next", "vfio"]
+remotes = ["ver", "linus", "origin", "rdma", "ipsec", "ipsec-next", "ml", "vfio"]
 merge_order = ["mlx5-next", "testing/rdma-rc", "testing/rdma-next", "queue-rc", "queue-next"]
 
 [tags]
@@ -8,15 +8,12 @@ linus = [["master", "master"]]
 [rebases]
 rdma-rc = "wip/leon-for-rc"
 rdma-next = "wip/leon-for-next"
-xfrm-next = "ipsec-next/master"
 vfio-next = "vfio/next"
-net-next = "net-next/main"
-net = "net/main"
 
 [merges]
 # local branch : [base, source branches]
 mlx5-next = ["ml/mlx5-next"]
 "testing/rdma-rc" = ["rdma-rc", "master", "vfio/for-linus", "ipsec/master"]
-"testing/rdma-next" = ["testing/rdma-rc", "rdma-next", "rdma/hmm", "vfio-next", "xfrm-next"]
+"testing/rdma-next" = ["testing/rdma-rc", "rdma-next", "rdma/hmm", "vfio-next", "ipsec-next/master"]
 queue-rc = ["ver/testing/net-rc", "testing/rdma-rc"]
 queue-next = ["ver/testing/net-next", "testing/rdma-next"]
