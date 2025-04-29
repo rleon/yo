@@ -19,6 +19,13 @@ def args_web(parser):
             choices=['all', 'failed'],
             help="Get results links")
     parser.add_argument(
+            "-l",
+            "--links",
+            dest="links",
+            action="store_true",
+            help="Just print final linnks, but not open web browser",
+            default=False)
+    parser.add_argument(
             "-v",
             "--verbose",
             dest="verbose",
@@ -55,7 +62,10 @@ def cmd_web(args):
 
     for review in rev.filter(*to_filter):
         if not args.results:
-            subprocess.call(['xdg-open', review['url']])
+            if args.links:
+                print(review['url'])
+            else:
+                subprocess.call(['xdg-open', review['url']])
             return
 
         matches = ['Code-Analysis-1', 'Kernel-Compile-1', 'Regression-Tests-1']
@@ -67,4 +77,7 @@ def cmd_web(args):
 
             if any([x in comment['message'] for x in matches]):
                 link = comment['message'].split()[-1]
-                subprocess.call(['xdg-open', link])
+                if args.links:
+                    print(link)
+                else:
+                    subprocess.call(['xdg-open', link])
