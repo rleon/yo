@@ -108,7 +108,7 @@ def cmd_verify(args):
         if args.status:
             continue
 
-        base += [git_find_base(remote, branch)]
+        base += ['master']
         issue += [cache['issue']]
 
     if args.status:

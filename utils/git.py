@@ -218,24 +218,6 @@ def git_merge_squash(branch, verbose=False):
     else:
         git_call(cmd + [branch])
 
-def git_find_base(remote, current, branches=["rdma-rc-mlx",
-                                             "rdma-next-mlx",
-                                             "net-next",
-                                             "net"]):
-    commits = 100000000
-    best = ""
-
-    for branch in branches:
-        sha = git_simple_output(["merge-base", current,
-                                 "%s/%s" % (remote, branch)])
-        res = git_simple_output(["log", "--oneline", "--single-worktree",
-                                 "%s..%s" % (sha, current)])
-        count = len(res.split())
-        if (count < commits):
-            commits = count
-            best = branch
-
-    return best
 
 def git_detach_workspace(path, verbose=False):
     cmd = ["worktree", "add", "--detach"]
