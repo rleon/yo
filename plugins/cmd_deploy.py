@@ -1,6 +1,5 @@
 """YO cloud tools
 """
-from utils.cloud import *
 
 import os
 import ipaddress
@@ -79,6 +78,9 @@ def args_deploy(parser):
 
 def cmd_deploy(args):
     """Deploy flow"""
+
+    from utils.cloud import ActiveSessions
+
     args.root = git_root()
     if args.root is None:
         exit()

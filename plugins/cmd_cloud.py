@@ -1,7 +1,5 @@
 """YO cloud tools
 """
-from utils.misc import *
-from utils.cloud import *
 
 import os
 import stat
@@ -122,6 +120,8 @@ def args_cloud(parser):
 
 def cmd_cloud(args):
     """Manage sessions"""
+
+    from utils.cloud import ActiveSessions
 
     if args.auto_extend:
         auto_extend(args.auto_extend == ['on'])

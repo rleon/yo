@@ -1,7 +1,6 @@
 """YO cloud tools
 """
 from utils.misc import switch_to_ssh
-from utils.cloud import *
 
 #--------------------------------------------------------------------------------------------------------
 def args_console(parser):
@@ -19,6 +18,9 @@ def args_console(parser):
 
 def cmd_console(args):
     """View console"""
+
+    from utils.cloud import ActiveSessions
+
     if args.name is None:
         args.name = ActiveSessions.get_players("to get console")
 
