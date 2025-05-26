@@ -8,12 +8,11 @@ linus = [["master", "master"]]
 [rebases]
 rdma-rc = "wip/leon-for-rc"
 rdma-next = "wip/leon-for-next"
-vfio-next = "vfio/next"
 
 [merges]
 # local branch : [base, source branches]
 mlx5-next = ["ml/mlx5-next"]
 "testing/rdma-rc" = ["rdma-rc", "master", "vfio/for-linus", "ipsec/master"]
-"testing/rdma-next" = ["testing/rdma-rc", "rdma-next", "rdma/hmm", "vfio-next", "ipsec-next/master"]
+"testing/rdma-next" = ["testing/rdma-rc", "rdma-next", "rdma/hmm", "vfio/next", "ipsec-next/master"]
 queue-rc = ["ver/testing/net-rc", "testing/rdma-rc"]
 queue-next = ["ver/testing/net-next", "testing/rdma-next"]

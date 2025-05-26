@@ -11,8 +11,7 @@ rdma = [["wip/leon-for-next", "wip/leon-for-next"],
 [force]
 # remote : [(local branch, remote branch)]
 origin = [["rdma-next", "rdma-next"],
-	  ["rdma-rc", "rdma-rc"],
-         ["xfrm-next", "xfrm-next"]]
+	  ["rdma-rc", "rdma-rc"]]
 
 [testing]
 # remote : [(local branch, remote branch)]
