@@ -7,6 +7,7 @@ import math
 import tempfile
 from texttable import Texttable
 from datetime import datetime
+from utils.cloud import ActiveSessions
 try:
     import zoneinfo
 except ImportError:
