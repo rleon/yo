@@ -32,7 +32,7 @@ def coccicheck(args):
     for d in args.dirlist:
         cmd = ["make", "coccicheck", "MODE=report", "M=%s" %(d),  "-j", str(args.num_jobs)]
         print_verbose_cmd(args, cmd)
-        subprocess.run(cmd, stdout=subprocess.DEVNULL);
+        p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT);
 
 def check_parser_errors(out):
     found = False
