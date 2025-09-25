@@ -40,6 +40,10 @@ def check_parser_errors(out):
         if line.startswith("scripts") or line == '':
             # Fixup to https://lore.kernel.org/lkml/1521810279-6282-3-git-send-email-yamada.masahiro@socionext.com/
             continue
+        if "warning syscall" in line and "not implemented" in line:
+            # Warnings like this are informative ones, we can skip them
+            # <stdin>:1519:2: warning: #warning syscall clone3 not implemented [-Wcpp]
+            continue
         print(line)
         found = True
 
@@ -89,6 +93,22 @@ def warnings(args, tool_cmd=None, arch="x86_64"):
         check_parser_errors(out)
     else:
         check_filter_errors(args, out)
+
+def warnings_defconfigs(args):
+    args.config = "defconfig"
+
+    # Archs that don't need CROSS_COMPILE variable
+    cross = {"x86_64" : None,
+             "i386" : None,
+             "sparc64": "sparc64",
+             "alpha" : "alpha",
+             "parisc" : "hppa",
+             "parisc64" : "hppa64"}
+    for key, value in cross.items():
+        if value is None:
+            warnings(args, arch=key)
+        else:
+            warnings(args, arch=key, tool_cmd=["CROSS_COMPILE=%s-linux-gnu-" %(value)])
 
 def warnings_32b(args):
     warnings(args, arch="i386")
@@ -208,6 +228,8 @@ def cmd_ci(args):
 
                 smatch(args)
                 sparse(args)
+
+            warnings_defconfigs(args)
 
             # We check one arch and one config only
             args.config = "rust.config"
