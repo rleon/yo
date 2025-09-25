@@ -102,6 +102,9 @@ def smatch(args):
 def sparse(args):
     warnings(args, tool_cmd=["CHECK=sparse", "C=2", "CF='-fdiagnostic-prefix -D__CHECK_ENDIAN__'"])
 
+def rust(args):
+    warnings(args, tool_cmd=["LLVM=1"])
+
 def build_dirlist(args):
     cmd = ["show", "--name-only", "--oneline", args.rev]
     files = git_simple_output(cmd).split('\n')
@@ -135,9 +138,6 @@ def build_dirlist(args):
     args.dirlist = list(dirlist)
     args.includes = list(includes)
     args.files = [f for f in files if f not in args.includes]
-
-def build_configs(args):
-    args.configs = ["allyesconfig", "allnoconfig", "allmodconfig"]
 
 def set_gerrit_flag(args):
     cmd = ["branch", "--format=%(refname:short)", "--contains", args.rev]
@@ -181,7 +181,6 @@ def cmd_ci(args):
 
     set_gerrit_flag(args)
     build_dirlist(args)
-    build_configs(args)
 
     # In-tree checks
     checkpatch(args)
@@ -193,15 +192,26 @@ def cmd_ci(args):
             coccicheck(args)
             ynl(args)
 
+            base_configs = ["allyesconfig", "allnoconfig", "allmodconfig", "alldefconfig"]
+            extra_configs = ["tinyconfig", "debug.config", "kvm_guest.config", "xen.config",
+                             "hardening.config", "nopm.config"]
             # Compilation checks
-            for config in args.configs:
+            for config in base_configs + extra_configs:
                 args.config = config
 
                 warnings(args)
                 warnings_32b(args)
                 clang(args)
+
+            for config in base_configs:
+                args.config = config
+
                 smatch(args)
                 sparse(args)
+
+            # We check one arch and one config only
+            args.config = "rust.config"
+            rust(args)
 
     git_worktree_prune()
 
