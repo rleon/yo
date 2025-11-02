@@ -2,7 +2,6 @@
 USER=`whoami`
 SRC="/w"
 
-sudo rm -rf /etc/yum.repos.d/docker-ce.repo
 sudo dnf install rsync dwarves ccache cronie -y
 sudo rm -rf $SRC
 
@@ -12,65 +11,16 @@ sudo chown -R $USER:mtl $SRC/
 git clone /swgwork/$USER/src/rdma-core $SRC/rdma-core
 
 git clone /swgwork/$USER/src/kernel $SRC/kernel
-cp /.autodirect/l/upstream/common_new/kernels/latest-for-upstream-debug/CONFIGS/config.x86_64.debug $SRC/kernel/.config
-
-TMPFILE=$(mktemp)
-cat <<EOF > $TMPFILE
-CONFIG_IA32_EMULATION=y
-CONFIG_SUNRPC_XPRT_RDMA=n
-CONFIG_RDS=n
-CONFIG_RDS_RDMA=n
-CONFIG_OPENVSWITCH=n
-CONFIG_OPENVSWITCH_GRE=n
-CONFIG_OPENVSWITCH_VXLAN=n
-CONFIG_OPENVSWITCH_GENEVE=n
-CONFIG_NET_NSH=n
-CONFIG_NETDEVSIM=n
-CONFIG_MPLS=n
-CONFIG_MLXSW=n
-CONFIG_MLXFW=n
-CONFIG_MLX4_CORE=n
-CONFIG_MLX4_EN=n
-CONFIG_MLX4_INFINIBAND=n
-CONFIG_MLX5_FPGA=n
-CONFIG_NETFILTER=n
-CONFIG_NF_CONNTRACK=n
-CONFIG_BPFILTER=n
-CONFIG_RDMA_RXE=n
-CONFIG_INFINIBAND_SRP=n
-CONFIG_INFINIBAND_ISER=n
-CONFIG_CGROUP_PID=n
-CONFIG_CGROUP_RDMA=n
-CONFIG_CGROUP_FREEZER=n
-CONFIG_CGROUP_DEVICE=n
-CONFIG_CGROUP_CPUACCT=n
-CONFIG_MEMCG=n
-CONFIG_KEXEC=n
-CONFIG_KEXEC_FILE=n
-CONFIG_KVM_AMD=n
-CONFIG_SECURITY=n
-CONFIG_DEBUG_INFO_BTF=n
-EOF
-#$SRC/kernel/scripts/kconfig/merge_config.sh -O $SRC/kernel/ -y -m -Q $SRC/kernel/.config $TMPFILE
-#$SRC/kernel/scripts/kconfig/merge_config.sh -O $SRC/kernel/ -y -m -Q $SRC/kernel/.config $SRC/kernel/kernel/configs/debug.config
+#cp /.autodirect/l/upstream/common_new/kernels/latest-for-upstream-debug/CONFIGS/config.x86_64.debug $SRC/kernel/.config
+gunzip -d /proc/config.gz -c > $SRC/kernel/.config
 
 mkdir /w/ccache
 sudo systemctl enable crond
 sudo systemctl start crond
 
-# We don't need docker inside testing VM
-sudo systemctl stop docker.socket
-sudo systemctl disable docker.socket
-sudo systemctl stop docker
-sudo systemctl disable docker
-
+TMPFILE=$(mktemp)
 echo 'vm.nr_hugepages = 2' > $TMPFILE
 sudo cp $TMPFILE /etc/sysctl.d/60-yo.conf
 sudo chmod a+r /etc/sysctl.d/60-yo.conf
 
-cat <<EOF > $TMPFILE
-omit_dracutmodules+=" plymouth pollcdrom resume "
-EOF
-sudo cp $TMPFILE /etc/dracut.conf.d/yo.conf
-sudo dracut --regenerate-all --force
 rm -rf $TMPFILE
