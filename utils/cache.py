@@ -80,3 +80,18 @@ def get_cloud_cache():
             return tomllib.load(fp)
 
     return cache
+
+def get_ci_token():
+    create_cache_dir()
+    f = cache_dir + "/ci.db"
+
+    if not os.path.isfile(f):
+        exit("Please generate CI token https://nbuprod.blsm.nvidia.com/nbu-sw-upstream-linux-build and store it in ~/.cache/yo/ci.db")
+
+    with open(f, mode="rb") as fp:
+        cache = tomllib.load(fp)
+
+    try:
+        return cache['token']
+    except KeyError:
+        exit("Please write token in format: token = '123'")

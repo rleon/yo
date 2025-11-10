@@ -8,6 +8,7 @@ import tempfile
 from texttable import Texttable
 from datetime import datetime
 from utils.cloud import ActiveSessions
+from utils.cmdline import get_internal_fn
 try:
     import zoneinfo
 except ImportError:
@@ -83,7 +84,7 @@ def auto_extend(install):
 
     with tempfile.NamedTemporaryFile('w') as f:
         f.write("#!/usr/bin/sh\n")
-        f.write("sudo -u %s %s/yo cloud --extend\n" % (os.getlogin(), yo_root()))
+        f.write("sudo -u %s %s cloud --extend\n" % (os.getlogin(), get_internal_fn("yo")))
         f.flush()
         os.chmod(f.name, os.stat(f.name).st_mode | stat.S_IEXEC)
         os.system("sudo cp -f %s /etc/cron.daily/yo-cloud-extend" % (f.name))

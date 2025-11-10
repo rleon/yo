@@ -6,6 +6,7 @@ import ipaddress
 import subprocess
 from utils.git import *
 from utils.misc import *
+from utils.cmdline import get_internal_fn
 
 def is_ipv4(string):
     try:
@@ -15,15 +16,14 @@ def is_ipv4(string):
         return False
 
 def rebuild_kernel(name, br, headers, clean):
-    with open("%s/scripts/yo-kbuild" % (yo_root()), "r") as f:
+    with open(get_internal_fn("scripts/yo-kbuild"), "r") as f:
         exec_on_remote(name, args=["_BRANCH=%s" % (br), "_WITH_H=%s" % (headers),
                                    "_CLEAN=%s" % (clean), "bash"], script=f)
 
 
 def init_setup(name, br):
-    o = subprocess.check_output(['%s/scripts/yo-mirror' % (yo_root()), 'hpchead.lab.mtl.com', 'kernel'])
-    print(o.strip().decode("utf-8"))
-    with open('%s/scripts/yo-cloud-init' % (yo_root()), "r") as f:
+    mirror_kernel()
+    with open(get_internal_fn('scripts/yo-cloud-init'), "r") as f:
         lines = []
         with open(os.path.expanduser('~/.ssh/known_hosts'), "r") as sr:
             lines = sr.readlines()

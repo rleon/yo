@@ -4,12 +4,31 @@ import os
 import subprocess
 import argparse
 import tempfile
+from threading import Thread
 from utils.git import *
-from utils.misc import get_project, in_directory
+from utils.misc import *
+from utils.cache import get_ci_token
+from utils.cmdline import get_internal_fn
 
 def print_verbose_cmd(args, cmd):
     if args.verbose:
         print(' '.join(cmd))
+
+def run_nbu_ci(rev):
+    token = get_ci_token()
+    mirror_kernel()
+    with open(get_internal_fn('scripts/nbu-regression'), "r") as f:
+        exec_on_remote("hpchead.lab.mtl.com",
+                       args=["GIT_REPO=/.autodirect/swgwork/%s/src/kernel" % (os.getlogin()),
+                             "RPM_DIR=/.autodirect/swgwork/%s/rpms" % (os.getlogin()),
+                             "GIT_REVISION=%s" % (git_current_sha(rev)),
+                             "JENKINS_TOKEN=%s" % (token), "SKIP_EMAIL=true",
+                             "bash"], script=f)
+        print("NBU CI regression started:")
+        print("\thttps://nbuprod.blsm.nvidia.com/nbu-sw-upstream-linux-build/job/CI/job/NFS_SOURCE_CI/job/main/")
+        exec_on_remote("hpchead.lab.mtl.com",
+                       args=["find /.autodirect/swgwork/%s/rpms" % (os.getlogin()),
+                             "-mindepth", "1", "-mtime", "+3", "-delete"])
 
 def ynl(args):
     cmd = ["tools/net/ynl/ynl-regen.sh", "-f"]
@@ -204,10 +223,14 @@ def cmd_ci(args):
 
     # In-tree checks
     checkpatch(args)
+    thread = Thread(target=run_nbu_ci, args=(args.rev,))
+    thread.start()
 
     with tempfile.TemporaryDirectory() as d:
         git_detach_workspace(d, args.verbose, args.rev)
         with in_directory(d):
+            # Placed here to avoid mixed output to the screen
+            thread.join()
             # Semantic checks, no need different configs
             coccicheck(args)
             ynl(args)
@@ -236,4 +259,3 @@ def cmd_ci(args):
             rust(args)
 
     git_worktree_prune()
-

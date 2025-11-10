@@ -2,6 +2,7 @@ import os
 import tempfile
 import subprocess
 from contextlib import contextmanager
+from utils.cmdline import get_internal_fn
 
 @contextmanager
 def in_directory(dir):
@@ -60,5 +61,10 @@ def exec_on_remote(name, args=None, script=None):
         fstdin = script
     subprocess.run(cmd, stdin=fstdin)
 
-def yo_root():
-    return os.path.dirname((os.path.dirname(__file__) + ".."))
+def mirror_kernel():
+    o = subprocess.check_output([get_internal_fn('scripts/yo-mirror'),
+                                 'hpchead.lab.mtl.com', 'kernel'], text=True)
+    # Last character is blank line, just remove it
+    #print(o.strip().decode("utf-8"))
+    print(o[:-1])
+
