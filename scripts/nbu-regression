@@ -1,0 +1,257 @@
+#!/bin/bash
+
+# Script to trigger NFS Source CI Jenkins job
+# Job URL: https://nbuprod.blsm.nvidia.com/nbu-sw-upstream-linux-build/job/CI/job/NFS_SOURCE_CI/job/main/
+
+set -e
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+# Jenkins configuration
+JENKINS_URL="https://nbuprod.blsm.nvidia.com/nbu-sw-upstream-linux-build"
+JOB_PATH="job/CI/job/NFS_SOURCE_CI/job/main"
+BUILD_ENDPOINT="${JENKINS_URL}/${JOB_PATH}/buildWithParameters"
+JENKINS_EMAIL_DOMAIN="${JENKINS_EMAIL_DOMAIN:-nvidia.com}"
+
+# Function to display usage
+usage() {
+    cat << EOF
+Usage: $0 [OPTIONS]
+
+Trigger NFS Source CI Jenkins job with specified parameters.
+
+Required Options:
+    -r, --repo REPO_DIR         Git repository directory path
+    -d, --rpm-dir RPM_DIR       Kernel packages location (RPM directory)
+
+Optional Options:
+    -v, --revision REVISION     Git revision (branch, SHA, tag, etc.) (default: HEAD)
+    -e, --email EMAIL           Email recipient for notifications
+    --no-email                  Disable all email notifications from the Jenkins job
+    -u, --user USERNAME         Jenkins username (default: current user from whoami)
+    -t, --token TOKEN           Jenkins API token
+    --verbose                   Enable verbose output (show detailed progress)
+    -h, --help                  Display this help message
+
+Environment Variables:
+    JENKINS_USER                Jenkins username (alternative to -u, default: whoami)
+    JENKINS_TOKEN               Jenkins API token (alternative to -t)
+    SKIP_EMAIL                  Set to 'true' to disable email notifications (default: false)
+
+Examples:
+    # Basic usage (uses current user, will prompt for token)
+    $0 -r /path/to/nfs/repo -d /path/to/rpm/dir
+
+    # Pass credentials as arguments
+    $0 -u myuser -t mytoken123 -r /path/to/nfs/repo -d /path/to/rpm/dir
+
+    # With all options
+    $0 -u myuser -t mytoken123 -r /path/to/nfs/repo -v feature-branch -d /path/to/rpm/dir -e user@example.com
+
+    # Using environment variables for credentials
+    export JENKINS_TOKEN="your_api_token"
+    $0 -r /path/to/nfs/repo -d /path/to/rpm/dir
+
+    # With verbose output
+    $0 --verbose -r /path/to/nfs/repo -d /path/to/rpm/dir
+
+    # Disable email notifications (via flag)
+    $0 --no-email -r /path/to/nfs/repo -d /path/to/rpm/dir
+
+    # Disable email notifications (via environment variable)
+    export SKIP_EMAIL=true
+    $0 -r /path/to/nfs/repo -d /path/to/rpm/dir
+
+Notes:
+    - Jenkins API token can be generated from: User -> Configure -> API Token
+    - Username defaults to current user (whoami) if not provided
+    - If token is not provided via arguments or environment variables, the script will prompt for it
+    - This script must NOT be run as root user
+    - For security, set script permissions: chmod 700 trigger_upstream_nfs_source_ci.sh
+    - By default, email notifications are enabled. Use --no-email flag or SKIP_EMAIL=true to disable them.
+
+EOF
+    exit 1
+}
+
+# Function to get Jenkins credentials
+get_credentials() {
+    # Use whoami if JENKINS_USER is not set
+    if [ -z "$JENKINS_USER" ]; then
+        JENKINS_USER=$(whoami)
+    fi
+
+    if [ -z "$JENKINS_TOKEN" ]; then
+        read -s -p "Jenkins API Token: " JENKINS_TOKEN
+        echo
+    fi
+
+    if [ -z "$JENKINS_USER" ] || [ -z "$JENKINS_TOKEN" ]; then
+        echo -e "${RED}Error: Jenkins credentials are required${NC}"
+        exit 1
+    fi
+}
+
+# Initialize variables
+GIT_REPO="${GIT_REPO:-}"
+GIT_REVISION="${GIT_REVISION:-HEAD}"
+RPM_DIR="${RPM_DIR:-}"
+USER_EMAIL="${USER_EMAIL:-}"
+SKIP_EMAIL="${SKIP_EMAIL:-false}"
+JENKINS_USER="${JENKINS_USER:-}"
+JENKINS_TOKEN="${JENKINS_TOKEN:-}"
+VERBOSE="${VERBOSE:-false}"
+
+# Parse command line arguments
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -r|--repo)
+            GIT_REPO="$2"
+            shift 2
+            ;;
+        -v|--revision)
+            GIT_REVISION="$2"
+            shift 2
+            ;;
+        -d|--rpm-dir)
+            RPM_DIR="$2"
+            shift 2
+            ;;
+        -e|--email)
+            USER_EMAIL="$2"
+            shift 2
+            ;;
+        --no-email)
+            SKIP_EMAIL=true
+            shift
+            ;;
+        -u|--user)
+            JENKINS_USER="$2"
+            shift 2
+            ;;
+        -t|--token)
+            JENKINS_TOKEN="$2"
+            shift 2
+            ;;
+        --verbose)
+            VERBOSE=true
+            shift
+            ;;
+        -h|--help)
+            usage
+            ;;
+        *)
+            echo -e "${RED}Error: Unknown option: $1${NC}"
+            usage
+            ;;
+    esac
+done
+
+# Validate required parameters
+if [ -z "$GIT_REPO" ]; then
+    echo -e "${RED}Error: Git repository directory is required (-r/--repo)${NC}"
+    usage
+fi
+
+if [ -z "$RPM_DIR" ]; then
+    echo -e "${RED}Error: RPM directory is required (-d/--rpm-dir)${NC}"
+    usage
+fi
+
+# Check if running as root
+if [ "$(whoami)" = "root" ]; then
+    echo -e "${RED}Error: This script must NOT be run as root${NC}"
+    echo "Please run as a regular user."
+    exit 1
+fi
+
+# Get Jenkins credentials
+get_credentials
+
+# Get top commit details
+[ "$VERBOSE" = true ] && echo "Fetching commit details from repository..."
+cd "${GIT_REPO}" || {
+    echo -e "${RED}Error: Cannot access repository directory: ${GIT_REPO}${NC}"
+    exit 1
+}
+
+# Try to fetch commit details without sudo first (preferred)
+# This avoids requiring sudo privileges
+TOP_COMMIT_DETAILS=$(git log -1 --pretty=format:'%h %an %s' ${GIT_REVISION} 2>&1)
+if [ $? -ne 0 ]; then
+    [ "$VERBOSE" = true ] && echo -e "${YELLOW}Warning: Could not fetch commit details: ${TOP_COMMIT_DETAILS}${NC}"
+    TOP_COMMIT_DETAILS="Unable to fetch commit details"
+fi
+
+cd - > /dev/null
+
+# URL encode the commit details
+TOP_COMMIT_DETAILS_ENCODED=$(echo -n "${TOP_COMMIT_DETAILS}" | curl -Gso /dev/null -w %{url_effective} --data-urlencode @- "" | cut -c 3-)
+
+# Build the parameters (use uppercase parameter names to match Jenkinsfile)
+PARAMS="GIT_NFS_SOURCE_REPO_DIR=${GIT_REPO}"
+PARAMS="${PARAMS}&GIT_NFS_SOURCE_REVISION=${GIT_REVISION}"
+PARAMS="${PARAMS}&RPM_DIR=${RPM_DIR}"
+PARAMS="${PARAMS}&TOP_COMMIT_DETAILS=${TOP_COMMIT_DETAILS_ENCODED}"
+PARAMS="${PARAMS}&SKIP_EMAIL=${SKIP_EMAIL}"
+
+if [ -n "$USER_EMAIL" ]; then
+    PARAMS="${PARAMS}&USER_EMAIL=${USER_EMAIL}"
+fi
+
+# Display job information
+if [ "$VERBOSE" = true ]; then
+    echo -e "${GREEN}Triggering NFS Source CI Jenkins Job${NC}"
+    echo "======================================"
+    echo "Repository: $GIT_REPO"
+    echo "Revision: $GIT_REVISION"
+    echo "Commit: $TOP_COMMIT_DETAILS"
+    echo "RPM Directory: $RPM_DIR"
+    [ -n "$USER_EMAIL" ] && echo "Email: $USER_EMAIL"
+    echo "Skip Email: $SKIP_EMAIL"
+    echo "======================================"
+    echo
+fi
+
+# Trigger the Jenkins job
+if [ "$VERBOSE" = true ]; then
+    echo "Sending request to Jenkins..."
+    echo
+    echo "Executing command:"
+    echo "curl -X POST -u \"${JENKINS_USER}@${JENKINS_EMAIL_DOMAIN}:****\" \"${BUILD_ENDPOINT}?${PARAMS}\""
+    echo
+fi
+
+RESPONSE=$(curl -s -w "\n%{http_code}" \
+    -X POST \
+    -u "${JENKINS_USER}@${JENKINS_EMAIL_DOMAIN}:${JENKINS_TOKEN}" \
+    "${BUILD_ENDPOINT}?${PARAMS}")
+
+# Extract HTTP status code (last line)
+HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+
+# Check response
+if [ "$HTTP_CODE" -eq 201 ] || [ "$HTTP_CODE" -eq 200 ]; then
+    if [ "$VERBOSE" = true ]; then
+        echo -e "${GREEN}✓ Job triggered successfully!${NC}"
+        echo
+        echo "Job URL: ${JENKINS_URL}/${JOB_PATH}"
+        echo
+        echo "You can monitor the job progress at:"
+        echo "${JENKINS_URL}/${JOB_PATH}/lastBuild/console"
+    fi
+    exit 0
+else
+    if [ "$VERBOSE" = true ]; then
+        echo -e "${RED}✗ Failed to trigger job${NC}"
+        echo "HTTP Status Code: $HTTP_CODE"
+        echo "Response:"
+        echo "$RESPONSE" | head -n -1
+    fi
+    exit 1
+fi
+
