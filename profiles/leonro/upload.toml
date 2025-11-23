@@ -10,7 +10,7 @@ rdma = [["wip/leon-for-next", "wip/leon-for-next"],
 # Branches with -f push
 [force]
 # remote : [(local branch, remote branch)]
-origin = [["rdma-next", "rdma-next"],
+ver = [["rdma-next", "rdma-next"],
 	  ["rdma-rc", "rdma-rc"]]
 
 [testing]
