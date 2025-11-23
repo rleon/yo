@@ -20,6 +20,7 @@ cmd_modules = {
     "cmd_connect",
     "cmd_status",
     "cmd_ci",
+    "cmd_ai",
 }
 
 if __name__ == "__main__":

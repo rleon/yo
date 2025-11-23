@@ -95,3 +95,18 @@ def get_ci_token():
         return cache['token']
     except KeyError:
         exit("Please write token in format: token = '123'")
+
+def get_ai_cred():
+    create_cache_dir()
+    f = cache_dir + "/ai.db"
+
+    if not os.path.isfile(f):
+        exit("Please generate AI token and URL for LLVM, and store it in ~/.cache/yo/ai.db")
+
+    with open(f, mode="rb") as fp:
+        cache = tomllib.load(fp)
+
+    try:
+        return cache['url'], cache['key']
+    except KeyError:
+        exit("Please write url/key in format: url = '123'")
