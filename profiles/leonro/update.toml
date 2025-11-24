@@ -9,6 +9,10 @@ linus = [["master", "master"]]
 rdma-rc = "wip/leon-for-rc"
 rdma-next = "wip/leon-for-next"
 
+[external]
+rdma-rc = "ver/rdma-rc"
+rdma-next = "ver/rdma-next"
+
 [merges]
 # local branch : [base, source branches]
 mlx5-next = ["ml/mlx5-next"]

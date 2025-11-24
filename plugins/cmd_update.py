@@ -2,6 +2,7 @@
 """
 from utils.git import *
 from utils.misc import get_project
+from utils.cmdline import query_yes_no
 from profiles import get_config
 
 def update_linus_tag(tags, verbose):
@@ -14,6 +15,16 @@ def update_linus_tag(tags, verbose):
             prev = git_checkout_branch(branch[0], verbose)
             git_reset_branch(tag, verbose)
             git_checkout_branch(prev, verbose)
+
+def check_external_change(branches, verbose):
+    for local, base in branches.items():
+        if git_same_content(local, base):
+            # It is up-to-date
+            continue
+
+        print("Branch %s is different than you have in %s." % (local, base))
+        if query_yes_no("Do you want to proceed?", 'no') is False:
+            exit()
 
 def rebase_branches(branches, verbose):
     curr = git_current_branch()
@@ -67,6 +78,7 @@ def cmd_update(args):
 
     config = get_config("update")
     git_remote_update(config["remotes"])
+    check_external_change(config["external"], args.verbose);
     update_linus_tag(config["tags"], args.verbose)
     rebase_branches(config["rebases"], args.verbose)
     merge_branches(config["merge_order"], config["merges"], args.verbose)
