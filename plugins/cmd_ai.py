@@ -14,6 +14,7 @@ def improve_message(args, client, message, note):
     completion = client.chat.completions.create(
             model = "azure/openai/gpt-5.1-chat",
             messages = [ { "role": "user",
+                          "verbosity": "low",
                           "content" : "Improve english grammar, vocabulary and style \
                                   as would write experienced linux kernel developer \
                                   with lines less than 80 characters, but don't break \
