@@ -10,7 +10,7 @@ warnings.filterwarnings("ignore", message="Core Pydantic V1 functionality isn't 
 
 from openai import OpenAI
 
-def improve_message(args, client, message, note):
+def improve_message(args, client, message):
     completion = client.chat.completions.create(
             model = "azure/openai/gpt-5.1-chat",
             messages = [ { "role": "user",
@@ -19,7 +19,7 @@ def improve_message(args, client, message, note):
                                   as would write experienced linux kernel developer \
                                   with lines less than 80 characters, but don't break \
                                   links, functions and code snippets for the following \
-                                  %s: %s" %(note, message), },
+                                  text: %s" %(message), },
                         ],
             )
 
@@ -51,22 +51,23 @@ def args_ai(parser):
 def cmd_ai(args):
     """Attempt to perform AI tasks"""
 
-    args.root = git_root()
-    if args.root is None:
-        exit()
-
     if args.in_place:
         message = sys.stdin.read()
-        note = "mail snippet"
+        message = f'"{message}"'
+        # openai module adds annoying banner if input is piped
+        sys.stdin.isatty = lambda: True  # or False, as needed
     else:
+        args.root = git_root()
+        if args.root is None:
+            exit()
+
         args.project = get_project(args)
         if args.project != "kernel":
             exit("Review is supported for kernel tree only.")
 
         git_call(["--no-pager", "log", "--oneline", "-n1", args.rev])
         message = git_simple_output(['log', '-1', args.rev, '--format="%B"'])
-        note = "while keeping Linux kernel coding style for the following commit message"
 
     url, key = get_ai_cred()
     client = OpenAI(base_url = url, api_key = key)
-    improve_message(args, client, message, note)
+    improve_message(args, client, message)
