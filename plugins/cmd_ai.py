@@ -1,5 +1,6 @@
 """YO cloud tools
 """
+import sys
 from utils.git import *
 from utils.misc import *
 from utils.cache import get_ai_cred
@@ -9,15 +10,15 @@ warnings.filterwarnings("ignore", message="Core Pydantic V1 functionality isn't 
 
 from openai import OpenAI
 
-def commit_message(args, client):
-    commit = git_simple_output(['log', '-1', args.rev, '--format="%B"'])
+def improve_message(args, client, message, note):
     completion = client.chat.completions.create(
             model = "azure/openai/gpt-5.1-chat",
             messages = [ { "role": "user",
                           "content" : "Improve english grammar, vocabulary and style \
                                   as would write experienced linux kernel developer \
-                                  while keeping lines below 80 characters per-line \
-                                  for the following commit message: %s" %(commit), },
+                                  with lines less than 80 characters, but don't break \
+                                  links, functions and code snippets for the following \
+                                  %s: %s" %(note, message), },
                         ],
             )
 
@@ -38,6 +39,13 @@ def args_ai(parser):
             action="store_true",
             help="Be more verbose",
             default=False)
+    parser.add_argument(
+            "-i",
+            "--in-place",
+            dest="in_place",
+            action="store_true",
+            help="Improve text in-place",
+            default=False)
 
 def cmd_ai(args):
     """Attempt to perform AI tasks"""
@@ -46,12 +54,18 @@ def cmd_ai(args):
     if args.root is None:
         exit()
 
-    args.project = get_project(args)
-    if args.project != "kernel":
-        exit("Review is supported for kernel tree only.")
+    if args.in_place:
+        message = sys.stdin.read()
+        note = "mail snippet"
+    else:
+        args.project = get_project(args)
+        if args.project != "kernel":
+            exit("Review is supported for kernel tree only.")
 
-    git_call(["--no-pager", "log", "--oneline", "-n1", args.rev])
+        git_call(["--no-pager", "log", "--oneline", "-n1", args.rev])
+        message = git_simple_output(['log', '-1', args.rev, '--format="%B"'])
+        note = "while keeping Linux kernel coding style for the following commit message"
+
     url, key = get_ai_cred()
     client = OpenAI(base_url = url, api_key = key)
-
-    commit_message(args, client)
+    improve_message(args, client, message, note)
