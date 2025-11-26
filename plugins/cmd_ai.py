@@ -40,18 +40,11 @@ def args_ai(parser):
             action="store_true",
             help="Be more verbose",
             default=False)
-    parser.add_argument(
-            "-i",
-            "--in-place",
-            dest="in_place",
-            action="store_true",
-            help="Improve text in-place",
-            default=False)
 
 def cmd_ai(args):
     """Attempt to perform AI tasks"""
 
-    if args.in_place:
+    if sys.stdin.isatty() is False:
         message = sys.stdin.read()
         message = f'"{message}"'
         # openai module adds annoying banner if input is piped
