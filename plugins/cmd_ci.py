@@ -47,6 +47,11 @@ def checkpatch(args):
     print_verbose_cmd(args, cmd)
     subprocess.call(cmd);
 
+def kdoc(args):
+    cmd = ["./scripts/kernel-doc", "-none"] + args.files + args.includes
+    print_verbose_cmd(args, cmd)
+    subprocess.call(cmd);
+
 def coccicheck(args):
     for d in args.dirlist:
         cmd = ["make", "coccicheck", "MODE=report", "M=%s" %(d),  "-j", str(args.num_jobs)]
@@ -223,6 +228,7 @@ def cmd_ci(args):
 
     # In-tree checks
     checkpatch(args)
+    kdoc(args)
     thread = Thread(target=run_nbu_ci, args=(args.rev,))
     thread.start()
 
