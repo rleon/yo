@@ -27,7 +27,7 @@ def improve_message(args, client, message):
 
 
 #--------------------------------------------------------------------------------------------------------
-def args_ai(parser):
+def args_text(parser):
     parser.add_argument(
             "rev",
             nargs='?',
@@ -41,8 +41,8 @@ def args_ai(parser):
             help="Be more verbose",
             default=False)
 
-def cmd_ai(args):
-    """Attempt to perform AI tasks"""
+def cmd_text(args):
+    """Perform AI tasks on texts"""
 
     if sys.stdin.isatty() is False:
         message = sys.stdin.read()
@@ -56,7 +56,7 @@ def cmd_ai(args):
 
         args.project = get_project(args)
         if args.project != "kernel":
-            exit("Review is supported for kernel tree only.")
+            exit("AI text is supported for kernel tree only.")
 
         git_call(["--no-pager", "log", "--oneline", "-n1", args.rev])
         message = git_simple_output(['log', '-1', args.rev, '--format="%B"'])
