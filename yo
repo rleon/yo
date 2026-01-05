@@ -21,6 +21,7 @@ cmd_modules = {
     "cmd_status",
     "cmd_ci",
     "cmd_text",
+    "cmd_review"
 }
 
 if __name__ == "__main__":
