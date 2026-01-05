@@ -62,9 +62,5 @@ def exec_on_remote(name, args=None, script=None):
     subprocess.run(cmd, stdin=fstdin)
 
 def mirror_kernel():
-    o = subprocess.check_output([get_internal_fn('scripts/yo-mirror'),
-                                 'hpchead.lab.mtl.com', 'kernel'], text=True)
-    # Last character is blank line, just remove it
-    #print(o.strip().decode("utf-8"))
-    print(o[:-1])
-
+    subprocess.run([get_internal_fn('scripts/yo-mirror'), 'hpchead.lab.mtl.com', 'kernel'],
+                   stdout=subprocess.DEVNULL)
