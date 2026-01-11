@@ -99,7 +99,17 @@ def cmd_review(args):
         with in_directory(d):
             with tempfile.NamedTemporaryFile('w+') as f:
                 prompt = "read prompt %s and run regression analysis of the top commit" %(get_internal_fn('../review-prompts/review-core.md'))
-                cmd = ["claude", "-p", prompt, "--model", "sonnet", "--verbose",
+                cmd = ["claude", "-p", prompt,
+                       "--mcp-config", '{"mcpServers":{"semcode":{"command":"semcode-mcp"}}}',
+                       "--allowedTools", "mcp__semcode__find_function,\
+                               mcp__semcode__diff_functions,\
+                               mcp__semcode__grep_functions,\
+                               mcp__semcode__find_callchain,\
+                               mcp__semcode__find_callers,\
+                               mcp__semcode__find_calls,\
+                               mcp__semcode__find_type,\
+                               mcp__semcode__find_commit",
+                       "--model", "sonnet", "--verbose",
                        "--output-format=stream-json"]
                 subprocess.run(cmd, stdout=f)
                 print_result(f, debug=args.verbose)
