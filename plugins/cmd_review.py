@@ -113,5 +113,9 @@ def cmd_review(args):
                        "--output-format=stream-json"]
                 subprocess.run(cmd, stdout=f)
                 print_result(f, debug=args.verbose)
+                try:
+                    shutil.copy("review-inline.txt", "%s/" %(args.root))
+                except FileNotFoundError:
+                    pass
 
     git_worktree_prune()
