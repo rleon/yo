@@ -109,7 +109,7 @@ def cmd_review(args):
                                mcp__semcode__find_calls,\
                                mcp__semcode__find_type,\
                                mcp__semcode__find_commit",
-                       "--model", "sonnet", "--verbose",
+                       "--model", "opus", "--verbose",
                        "--output-format=stream-json"]
                 subprocess.run(cmd, stdout=f)
                 print_result(f, debug=args.verbose)
