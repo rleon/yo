@@ -236,7 +236,7 @@ def cmd_ci(args):
         git_detach_workspace(d, args.verbose, args.rev)
         with in_directory(d):
             # Placed here to avoid mixed output to the screen
-            thread.join()
+            thread.join(timeout=5)
             # Semantic checks, no need different configs
             coccicheck(args)
             ynl(args)
