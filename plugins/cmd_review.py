@@ -94,6 +94,8 @@ def cmd_review(args):
     if args.project != "kernel":
         exit("AI review is supported for kernel tree only.")
 
+    git_call(["--no-pager", "log", "--oneline", "-n1", args.rev])
+
     with tempfile.TemporaryDirectory() as d:
         git_detach_workspace(d, args.verbose, args.rev)
         with in_directory(d):
