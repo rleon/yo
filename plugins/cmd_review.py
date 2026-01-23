@@ -68,6 +68,18 @@ def print_result(stream, debug=False):
 
     print(''.join(text_parts))
 
+def find_series_range(args):
+    #FIXME
+    args.first = args.rev
+    args.last = git_current_sha("HEAD")
+
+def rebuild_semcode(args):
+    cmd = ["merge-base", "--fork-point", "master", args.rev]
+    fork_point = git_simple_output(cmd)
+
+    cmd = ["semcode-index", "-s", ".", "--git", "%s..%s" %(fork_point, args.last)]
+    subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL);
+
 #--------------------------------------------------------------------------------------------------------
 def args_review(parser):
     parser.add_argument(
@@ -81,6 +93,13 @@ def args_review(parser):
             dest="verbose",
             action="store_true",
             help="Be more verbose",
+            default=False)
+    parser.add_argument(
+            "-s",
+            "--series",
+            dest="series",
+            action="store_true",
+            help="Review as a series",
             default=False)
 
 def cmd_review(args):
@@ -96,11 +115,17 @@ def cmd_review(args):
 
     git_call(["--no-pager", "log", "--oneline", "-n1", args.rev])
 
+    find_series_range(args)
+    rebuild_semcode(args)
+
     with tempfile.TemporaryDirectory() as d:
         git_detach_workspace(d, args.verbose, args.rev)
         with in_directory(d):
             with tempfile.NamedTemporaryFile('w+') as f:
-                prompt = "read prompt %s and run regression analysis of the top commit" %(get_internal_fn('../review-prompts/review-core.md'))
+                prompt = "read prompt %s and run regression analysis of the commit %s" %(get_internal_fn('../review-prompts/review-core.md'), args.rev)
+                if args.first != args.last:
+                    prompt += ", which is part of a series ending with %s" %(args.last)
+                    prompt += ", which is part of a series with git range %s..%s" %(args.first, args.last)
                 cmd = ["claude", "-p", prompt,
                        "--dangerously-skip-permissions",
                        "--mcp-config", '{"mcpServers":{"semcode":{"command":"semcode-mcp"}}}',
