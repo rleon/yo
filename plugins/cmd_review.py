@@ -102,6 +102,7 @@ def cmd_review(args):
             with tempfile.NamedTemporaryFile('w+') as f:
                 prompt = "read prompt %s and run regression analysis of the top commit" %(get_internal_fn('../review-prompts/review-core.md'))
                 cmd = ["claude", "-p", prompt,
+                       "--dangerously-skip-permissions",
                        "--mcp-config", '{"mcpServers":{"semcode":{"command":"semcode-mcp"}}}',
                        "--allowedTools", "mcp__semcode__find_function,\
                                mcp__semcode__diff_functions,\
