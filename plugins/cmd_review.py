@@ -129,14 +129,23 @@ def cmd_review(args):
                 cmd = ["claude", "-p", prompt,
                        "--dangerously-skip-permissions",
                        "--mcp-config", '{"mcpServers":{"semcode":{"command":"semcode-mcp"}}}',
-                       "--allowedTools", "mcp__semcode__find_function,\
-                               mcp__semcode__diff_functions,\
-                               mcp__semcode__grep_functions,\
-                               mcp__semcode__find_callchain,\
+                       "--allowedTools",
+                              "mcp__semcode__find_function,\
+                               mcp__semcode__find_type,\
                                mcp__semcode__find_callers,\
                                mcp__semcode__find_calls,\
-                               mcp__semcode__find_type,\
-                               mcp__semcode__find_commit",
+                               mcp__semcode__find_callchain,\
+                               mcp__semcode__diff_functions,\
+                               mcp__semcode__grep_functions,\
+                               mcp__semcode__vgrep_functions,\
+                               mcp__semcode__find_commit,\
+                               mcp__semcode__vcommit_similar_commits,\
+                               mcp__semcode__lore_search,\
+                               mcp__semcode__dig,\
+                               mcp__semcode__vlore_similar_emails,\
+                               mcp__semcode__indexing_status,\
+                               mcp__semcode__list_branches,\
+                               mcp__semcode__compare_branches",
                        "--model", "opus", "--verbose",
                        "--output-format=stream-json"]
                 subprocess.run(cmd, stdout=f)
