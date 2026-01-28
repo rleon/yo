@@ -78,6 +78,13 @@ def rebuild_semcode(args):
     fork_point = git_simple_output(cmd)
 
     cmd = ["semcode-index", "-s", ".", "--git", "%s..%s" %(fork_point, args.last)]
+    subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+    # FIXME, rely on get_maintainers to see what is the most appropriate ML to download,
+    # but for now let's use lists where I'm reviewing code.
+    cmd = ["semcode-index", "--lore", "linux-rdma"]
+    subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL);
+    cmd = ["semcode-index", "--lore", "netdev"]
     subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL);
 
 #--------------------------------------------------------------------------------------------------------
