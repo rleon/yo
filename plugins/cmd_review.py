@@ -134,7 +134,10 @@ def cmd_review(args):
                     prompt += ", git range %s..%s" %(args.first, args.last)
                     if args.cover is not None:
                         prompt +=" and cover letter %s" %(args.cover)
-                cmd = ["claude", "-p", prompt,
+                cmd = ["claude"]
+                if args.verbose:
+                    cmd += ["--mcp-debug", "--debug"]
+                cmd += ["-p", prompt,
                        "--dangerously-skip-permissions",
                        "--mcp-config", '{"mcpServers":{"semcode":{"command":"semcode-mcp"}}}',
                        "--allowedTools",
