@@ -1,6 +1,7 @@
 """YO cloud tools
 """
 import os
+import re
 import sys
 import json
 import shutil
@@ -78,28 +79,53 @@ def find_series_range(args):
     else:
         args.first = args.rev
 
+    # If we applied series from lore, we need to update last SHA in the series
     args.last = git_current_sha("HEAD")
 
-def rebuild_semcode(args):
-    cmd = ["merge-base", "--fork-point", "master", args.rev]
+def rebuild_semcode_git(args):
+    cmd = ["merge-base", "--fork-point", "master", args.last]
     fork_point = git_simple_output(cmd)
 
     cmd = ["semcode-index", "-s", ".", "--git", "%s..%s" %(fork_point, args.last)]
-    subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    if args.verbose:
+        subprocess.run(cmd)
+    else:
+        subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
+def rebuild_semcode_ml(args):
     # FIXME, rely on get_maintainers to see what is the most appropriate ML to download,
     # but for now let's use lists where I'm reviewing code.
     cmd = ["semcode-index", "--lore", "linux-rdma"]
-    subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL);
+    if args.verbose:
+        subprocess.run(cmd)
+    else:
+        subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     cmd = ["semcode-index", "--lore", "netdev"]
-    subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL);
+    if args.verbose:
+        subprocess.run(cmd)
+    else:
+        subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+def convert_revision(args):
+    if args.rev.startswith(('https://lore.kernel.org')):
+        print("aaa")
+        return
+
+    if re.match(r'^<?[^@\s]+@[^@\s]+>?$', args.rev):
+        print("bbb")
+        return
+
+    if not git_commit_exists(args.rev):
+        exit("Failed to understand what to check")
+
+    git_call(["--no-pager", "log", "--oneline", "-n1", args.rev])
 
 #--------------------------------------------------------------------------------------------------------
 def args_review(parser):
     parser.add_argument(
             "rev",
             nargs='?',
-            help="SHA1 to check",
+            help="SHA1 or message-id or lore link to check",
             default = "HEAD")
     parser.add_argument(
             "-v",
@@ -120,14 +146,18 @@ def cmd_review(args):
     if args.project != "kernel":
         exit("AI review is supported for kernel tree only.")
 
-    git_call(["--no-pager", "log", "--oneline", "-n1", args.rev])
+    args.last = git_current_sha("HEAD")
 
-    find_series_range(args)
-    thread = Thread(target=rebuild_semcode, args=(args,))
+    thread = Thread(target=rebuild_semcode_ml, args=(args,))
     thread.start()
 
     with tempfile.TemporaryDirectory(prefix="kernel-") as d:
-        git_detach_workspace(d, args.verbose, args.rev)
+        git_detach_workspace(d, args.verbose, args.last)
+
+        convert_revision(args)
+        find_series_range(args)
+        rebuild_semcode_git(args)
+
         with in_directory(d):
             with tempfile.NamedTemporaryFile('w+') as f:
                 thread.join()
