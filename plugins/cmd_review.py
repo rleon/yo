@@ -5,6 +5,7 @@ import sys
 import json
 import shutil
 import tempfile
+from threading import Thread
 from utils.git import *
 from utils.misc import *
 from utils.cmdline import get_internal_fn
@@ -122,12 +123,14 @@ def cmd_review(args):
     git_call(["--no-pager", "log", "--oneline", "-n1", args.rev])
 
     find_series_range(args)
-    rebuild_semcode(args)
+    thread = Thread(target=rebuild_semcode, args=(args,))
+    thread.start()
 
     with tempfile.TemporaryDirectory() as d:
         git_detach_workspace(d, args.verbose, args.rev)
         with in_directory(d):
             with tempfile.NamedTemporaryFile('w+') as f:
+                thread.join()
                 prompt = "read prompt %s and run regression analysis of the commit %s" %(get_internal_fn('../kernel/review-prompts/review-core.md'), args.rev)
                 if args.first != args.last:
                     prompt += ", which is part of a series ending with %s" %(args.last)
