@@ -128,7 +128,7 @@ def cmd_review(args):
         git_detach_workspace(d, args.verbose, args.rev)
         with in_directory(d):
             with tempfile.NamedTemporaryFile('w+') as f:
-                prompt = "read prompt %s and run regression analysis of the commit %s" %(get_internal_fn('../review-prompts/review-core.md'), args.rev)
+                prompt = "read prompt %s and run regression analysis of the commit %s" %(get_internal_fn('../kernel/review-prompts/review-core.md'), args.rev)
                 if args.first != args.last:
                     prompt += ", which is part of a series ending with %s" %(args.last)
                     prompt += ", git range %s..%s" %(args.first, args.last)
