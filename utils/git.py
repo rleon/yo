@@ -253,3 +253,34 @@ def git_commit_exists(commit):
         return True
     except subprocess.CalledProcessError:
         return False
+
+def git_cover_letter():
+    """Find empty commit (cover letter) in current branch
+
+    Returns the SHA of the first empty commit found, or None if no empty commit exists.
+    An empty commit has the same tree as its parent (no file changes).
+    """
+    commits = git_output(["log", "--format=%H", "-40"], mode="lines")
+
+    for commit in commits:
+        sha = commit.decode().strip()
+        # Check if commit has any file changes using diff-tree
+        # If the commit is empty, diff-tree will output nothing
+        diff = git_output(["diff-tree", "--no-commit-id", "--name-only", sha])
+        if not diff or len(diff.strip()) == 0:
+            return sha
+
+    return None
+
+def git_next_commit(sha):
+    """Find the next commit (child) after the provided SHA
+
+    Returns the SHA of the next commit in chronological order, or None if no next commit exists.
+    """
+    try:
+        commits = git_output(["rev-list", "--reverse", "%s..HEAD" % sha], mode="lines")
+        if commits and len(commits) > 0:
+            return commits[0].decode().strip()
+        return None
+    except subprocess.CalledProcessError:
+        return None

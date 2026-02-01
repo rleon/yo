@@ -69,8 +69,14 @@ def print_result(stream, debug=False):
     print(''.join(text_parts))
 
 def find_series_range(args):
-    #FIXME
-    args.first = args.rev
+    br = git_current_branch()
+
+    args.cover = git_cover_letter()
+    if args.cover is not None:
+        args.first = git_next_commit(args.cover)
+    else:
+        args.first = args.rev
+
     args.last = git_current_sha("HEAD")
 
 def rebuild_semcode(args):
@@ -101,13 +107,6 @@ def args_review(parser):
             action="store_true",
             help="Be more verbose",
             default=False)
-    parser.add_argument(
-            "-s",
-            "--series",
-            dest="series",
-            action="store_true",
-            help="Review as a series",
-            default=False)
 
 def cmd_review(args):
     """Perform AI review"""
@@ -132,7 +131,9 @@ def cmd_review(args):
                 prompt = "read prompt %s and run regression analysis of the commit %s" %(get_internal_fn('../review-prompts/review-core.md'), args.rev)
                 if args.first != args.last:
                     prompt += ", which is part of a series ending with %s" %(args.last)
-                    prompt += ", which is part of a series with git range %s..%s" %(args.first, args.last)
+                    prompt += ", git range %s..%s" %(args.first, args.last)
+                    if args.cover is not None:
+                        prompt +=" and cover letter %s" %(args.cover)
                 cmd = ["claude", "-p", prompt,
                        "--dangerously-skip-permissions",
                        "--mcp-config", '{"mcpServers":{"semcode":{"command":"semcode-mcp"}}}',
