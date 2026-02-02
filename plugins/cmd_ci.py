@@ -232,7 +232,7 @@ def cmd_ci(args):
     thread = Thread(target=run_nbu_ci, args=(args.rev,))
     thread.start()
 
-    with tempfile.TemporaryDirectory() as d:
+    with tempfile.TemporaryDirectory(prefix="kernel-") as d:
         git_detach_workspace(d, args.verbose, args.rev)
         with in_directory(d):
             # Placed here to avoid mixed output to the screen

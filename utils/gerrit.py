@@ -64,7 +64,7 @@ def git_push_squash_gerrit(remote, upto, base, branch, topic, issue, changeid, d
     if type(issue) is not list: issue = [ issue ]
     if type(changeid) is not list: changeid = [ changeid ]
 
-    with tempfile.TemporaryDirectory() as d:
+    with tempfile.TemporaryDirectory(prefix="kernel-") as d:
         git_detach_workspace(d, verbose)
 
         with in_directory(d):
