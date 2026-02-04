@@ -6,7 +6,6 @@ import sys
 import json
 import shutil
 import tempfile
-from threading import Thread
 from utils.git import *
 from utils.misc import *
 from utils.cmdline import get_internal_fn
@@ -92,20 +91,6 @@ def rebuild_semcode_git(args):
     else:
         subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-def rebuild_semcode_ml(args):
-    # FIXME, rely on get_maintainers to see what is the most appropriate ML to download,
-    # but for now let's use lists where I'm reviewing code.
-    cmd = ["semcode-index", "--lore", "linux-rdma"]
-    if args.verbose:
-        subprocess.run(cmd)
-    else:
-        subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    cmd = ["semcode-index", "--lore", "netdev"]
-    if args.verbose:
-        subprocess.run(cmd)
-    else:
-        subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-
 def convert_revision(args):
     if args.rev.startswith(('https://lore.kernel.org')):
         print("aaa")
@@ -148,9 +133,6 @@ def cmd_review(args):
 
     args.last = git_current_sha("HEAD")
 
-    thread = Thread(target=rebuild_semcode_ml, args=(args,))
-    thread.start()
-
     with tempfile.TemporaryDirectory(prefix="kernel-") as d:
         git_detach_workspace(d, args.verbose, args.last)
 
@@ -160,7 +142,6 @@ def cmd_review(args):
 
         with in_directory(d):
             with tempfile.NamedTemporaryFile('w+') as f:
-                thread.join()
                 prompt = "read prompt %s and run regression analysis of the commit %s" %(get_internal_fn('../review-prompts/kernel/review-core.md'), args.rev)
                 if args.first != args.last:
                     prompt += ", which is part of a series ending with %s" %(args.last)
