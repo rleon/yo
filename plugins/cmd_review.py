@@ -113,6 +113,12 @@ def args_review(parser):
             help="SHA1 or message-id or lore link to check",
             default = "HEAD")
     parser.add_argument(
+            "--print-cmd",
+            dest="print_cmd",
+            action="store_true",
+            help="Just print claude command for manual run",
+            default=False)
+    parser.add_argument(
             "-v",
             "--verbose",
             dest="verbose",
@@ -148,33 +154,38 @@ def cmd_review(args):
                     prompt += ", git range %s..%s" %(args.first, args.last)
                     if args.cover is not None:
                         prompt +=" and cover letter %s" %(args.cover)
-                cmd = ["claude"]
+                cmd = ["claude", "-p"]
                 if args.verbose:
                     cmd += ["--mcp-debug", "--debug"]
-                cmd += ["-p", prompt,
+                allowed_tools = ",".join([
+                    "mcp__semcode__find_function",
+                    "mcp__semcode__find_type",
+                    "mcp__semcode__find_callers",
+                    "mcp__semcode__find_calls",
+                    "mcp__semcode__find_callchain",
+                    "mcp__semcode__diff_functions",
+                    "mcp__semcode__grep_functions",
+                    "mcp__semcode__vgrep_functions",
+                    "mcp__semcode__find_commit",
+                    "mcp__semcode__vcommit_similar_commits",
+                    "mcp__semcode__lore_search",
+                    "mcp__semcode__dig",
+                    "mcp__semcode__vlore_similar_emails",
+                    "mcp__semcode__indexing_status",
+                    "mcp__semcode__list_branches",
+                    "mcp__semcode__compare_branches"
+                ])
+                cmd += [prompt,
                        "--dangerously-skip-permissions",
                        "--mcp-config", '{"mcpServers":{"semcode":{"command":"semcode-mcp"}}}',
-                       "--allowedTools",
-                              "mcp__semcode__find_function,\
-                               mcp__semcode__find_type,\
-                               mcp__semcode__find_callers,\
-                               mcp__semcode__find_calls,\
-                               mcp__semcode__find_callchain,\
-                               mcp__semcode__diff_functions,\
-                               mcp__semcode__grep_functions,\
-                               mcp__semcode__vgrep_functions,\
-                               mcp__semcode__find_commit,\
-                               mcp__semcode__vcommit_similar_commits,\
-                               mcp__semcode__lore_search,\
-                               mcp__semcode__dig,\
-                               mcp__semcode__vlore_similar_emails,\
-                               mcp__semcode__indexing_status,\
-                               mcp__semcode__list_branches,\
-                               mcp__semcode__compare_branches",
+                       "--allowedTools", allowed_tools,
                        "--model", "opus", "--verbose",
                        "--output-format=stream-json"]
-                subprocess.run(cmd, stdout=f)
-                print_result(f, debug=args.verbose)
+                if args.print_cmd:
+                    print(' '.join(cmd))
+                else:
+                    subprocess.run(cmd, stdout=f)
+                    print_result(f, debug=args.verbose)
                 try:
                     shutil.copy("review-inline.txt", "%s/" %(args.root))
                 except FileNotFoundError:
