@@ -6,8 +6,8 @@ merge_order = ["mlx5-next", "testing/rdma-rc", "testing/rdma-next", "queue-rc", 
 linus = [["master", "master"]]
 
 [rebases]
-rdma-rc = "wip/leon-for-rc"
-rdma-next = "wip/leon-for-next"
+rdma-rc = "mellanox/rdma-rc-mlx"
+rdma-next = "mellanox/rdma-next-mlx"
 
 [external]
 rdma-rc = "ver/rdma-rc"
