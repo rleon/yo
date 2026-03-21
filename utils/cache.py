@@ -6,7 +6,6 @@ else:
     import tomli as tomllib
 import requests
 import subprocess
-from .misc import in_directory
 from .gerrit import generate_changeid
 from .cmdline import query_user_pass
 
