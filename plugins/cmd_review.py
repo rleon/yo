@@ -1,123 +1,95 @@
 """YO cloud tools
 """
 import os
-import re
-import sys
-import json
 import shutil
 import tempfile
 from utils.git import *
 from utils.misc import *
-from utils.cmdline import get_internal_fn
 
-def print_result(stream, debug=False):
-    """Extract plain text from Claude's stream-json format."""
-    text_parts = []
-    line_count = 0
-    parsed_count = 0
+def is_b4_tracked(args):
+    branch = git_current_branch().strip()
+    if not branch.startswith("b4/"):
+        return False
 
-    stream.seek(0)
+    return True
 
-    for line in stream:
-        line_count += 1
-        line = line.strip()
+B4_BIN = os.path.expanduser("~/src/b4/b4.sh")
 
-        if not line:
-            continue
+def create_b4_mbox(args):
+    """Create an mbox file from the series on the current b4 prep branch.
 
-        if debug:
-            print(f"Processing line {line_count}: {line[:100]}...", file=sys.stderr)
+    Mirrors the ``git patch`` alias in ~/.gitaliases: asks ``b4 prep`` for the
+    current revision, then uses ``b4 send -o`` to emit each message of the
+    series as a standalone file (already in mboxrd ``From ``-prefixed form)
+    and concatenates them into a single mbox.  Stores the path in
+    ``args.b4_mbox``.
+    """
+    rev_out = subprocess.check_output(
+        [B4_BIN, "prep", "--show-revision"],
+        stderr=subprocess.STDOUT,
+    ).decode().splitlines()
+    revision = rev_out[0].strip() if rev_out else "v1"
 
-        try:
-            data = json.loads(line)
-
-            # Extract text from assistant messages
-            if (data.get('type') == 'assistant' and
-                'message' in data and
-                'content' in data['message']):
-
-                for content_item in data['message']['content']:
-                    if content_item.get('type') == 'text':
-                        text = content_item.get('text', '')
-                        if text:
-                            parsed_count += 1
-                            text_parts.append(text)
-                            if debug:
-                                print(f"Extracted text {parsed_count}: {len(text)} chars", file=sys.stderr)
-
-            # Handle streaming deltas (if Claude uses them)
-            elif data.get('type') == 'content_block_delta':
-                delta_text = data.get('delta', {}).get('text', '')
-                if delta_text:
-                    parsed_count += 1
-                    text_parts.append(delta_text)
-                    if debug:
-                        print(f"Extracted delta {parsed_count}: {len(delta_text)} chars", file=sys.stderr)
-
-        except json.JSONDecodeError as e:
-            if debug:
-                print(f"JSON decode error on line {line_count}: {e}", file=sys.stderr)
-                print(f"Raw line: {line}", file=sys.stderr)
-            continue
-        except Exception as e:
-            if debug:
-                print(f"Unexpected error on line {line_count}: {e}", file=sys.stderr)
-            continue
-
-    if debug:
-        print(f"Processed {line_count} lines, extracted {parsed_count} text parts, total {len(''.join(text_parts))} chars", file=sys.stderr)
-
-    print(''.join(text_parts))
-
-def find_series_range(args):
-    br = git_current_branch()
-
-    args.cover = git_cover_letter()
-    if args.cover is not None:
-        args.first = git_next_commit(args.cover)
-    else:
-        args.first = args.rev
-
-    # If we applied series from lore, we need to update last SHA in the series
-    args.last = git_current_sha("HEAD")
-
-def rebuild_semcode_git(args):
-    cmd = ["merge-base", "--fork-point", "master", args.last]
-    fork_point = git_simple_output(cmd)
-
-    cmd = ["semcode-index", "-s", ".", "--git", "%s..%s" %(fork_point, args.last)]
+    out_dir = tempfile.mkdtemp(prefix="b4-send-")
     if args.verbose:
-        subprocess.run(cmd)
+        subprocess.check_call([B4_BIN, "send", "--not-me-too", "-o", out_dir])
     else:
-        subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.check_call(
+            [B4_BIN, "send", "--not-me-too", "-o", out_dir],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
 
-def convert_revision(args):
-    if args.rev.startswith(('https://lore.kernel.org')):
-        print("aaa")
-        return
+    # b4 send -o writes bare .eml files with no mbox "From " separator, so
+    # concatenating them would look like a single giant message to any mbox
+    # splitter (e.g. sashiko's, which keys off "From ... HH:MM:SS" lines).
+    # Prepend a synthetic From_ line before each message to form valid mboxrd.
+    mbox_fd, mbox_path = tempfile.mkstemp(prefix="b4-series-", suffix=".mbox")
+    with os.fdopen(mbox_fd, "wb") as mbox:
+        for name in sorted(os.listdir(out_dir)):
+            mbox.write(b"From b4 Thu Jan  1 00:00:00 1970\n")
+            with open(os.path.join(out_dir, name), "rb") as f:
+                content = f.read()
+            mbox.write(content)
+            if not content.endswith(b"\n"):
+                mbox.write(b"\n")
 
-    if re.match(r'^<?[^@\s]+@[^@\s]+>?$', args.rev):
-        print("bbb")
-        return
+    shutil.rmtree(out_dir, ignore_errors=True)
+    args.mbox = mbox_path
 
-    if not git_commit_exists(args.rev):
-        exit("Failed to understand what to check")
+    # Locate b4's cover-letter commit (marked with the b4-submit-tracking
+    # magic line in its message) and record the SHA of its parent — i.e. the
+    # commit right before the cover letter on the b4 branch.
+    cover = git_simple_output([
+        "log", "--grep=--- b4-submit-tracking ---", "-F",
+        "--pretty=%H", "--max-count=1", "HEAD",
+    ])
+    if not cover:
+        exit("Could not locate b4 cover-letter commit on current branch")
+    args.base = git_simple_output(["rev-parse", "%s~1" % cover])
 
-    git_call(["--no-pager", "log", "--oneline", "-n1", args.rev])
+SASHIKO_NBU_URL = "http://sashiko-nbu.nvidia.com"
+SASHIKO_CLI = "/home/leonro/src/sashiko/target/release/sashiko-cli"
+
+def submit_to_sashiko(args):
+    """Submit the mbox at ``args.mbox`` to sashiko-nbu via the sashiko-cli.
+
+    Delegates to ``sashiko-cli submit --type mbox --baseline <sha>``
+    pointed at the NBU server.  Returns the CLI's stdout as a string.
+    """
+    cmd = [
+        SASHIKO_CLI,
+        "--server", SASHIKO_NBU_URL,
+        "submit",
+        "--baseline", args.base,
+    ]
+    with open(args.mbox, "rb") as fh:
+        out = subprocess.check_output(cmd, stdin=fh).decode()
+    print(out, end="")
+    return out
 
 #--------------------------------------------------------------------------------------------------------
 def args_review(parser):
-    parser.add_argument(
-            "rev",
-            nargs='?',
-            help="SHA1 or message-id or lore link to check",
-            default = "HEAD")
-    parser.add_argument(
-            "--print-cmd",
-            dest="print_cmd",
-            action="store_true",
-            help="Just print claude command for manual run",
-            default=False)
     parser.add_argument(
             "-v",
             "--verbose",
@@ -137,58 +109,11 @@ def cmd_review(args):
     if args.project != "kernel":
         exit("AI review is supported for kernel tree only.")
 
-    args.last = git_current_sha("HEAD")
+    args.mbox = None
+    if is_b4_tracked(args):
+        create_b4_mbox(args)
+    else:
+        exit("Supported for local b4 tracked branches")
 
-    with tempfile.TemporaryDirectory(prefix="kernel-") as d:
-        git_detach_workspace(d, args.verbose, args.last)
-
-        convert_revision(args)
-        find_series_range(args)
-        rebuild_semcode_git(args)
-
-        with in_directory(d):
-            with tempfile.NamedTemporaryFile('w+') as f:
-                prompt = "read prompt %s and run regression analysis of the commit %s" %(get_internal_fn('../review-prompts/kernel/review-core.md'), args.rev)
-                if args.first != args.last:
-                    prompt += ", which is part of a series ending with %s" %(args.last)
-                    prompt += ", git range %s..%s" %(args.first, args.last)
-                    if args.cover is not None:
-                        prompt +=" and cover letter %s" %(args.cover)
-                cmd = ["claude", "-p"]
-                if args.verbose:
-                    cmd += ["--mcp-debug", "--debug"]
-                allowed_tools = ",".join([
-                    "mcp__semcode__find_function",
-                    "mcp__semcode__find_type",
-                    "mcp__semcode__find_callers",
-                    "mcp__semcode__find_calls",
-                    "mcp__semcode__find_callchain",
-                    "mcp__semcode__diff_functions",
-                    "mcp__semcode__grep_functions",
-                    "mcp__semcode__vgrep_functions",
-                    "mcp__semcode__find_commit",
-                    "mcp__semcode__vcommit_similar_commits",
-                    "mcp__semcode__lore_search",
-                    "mcp__semcode__dig",
-                    "mcp__semcode__vlore_similar_emails",
-                    "mcp__semcode__indexing_status",
-                    "mcp__semcode__list_branches",
-                    "mcp__semcode__compare_branches"
-                ])
-                cmd += [prompt,
-                       "--dangerously-skip-permissions",
-                       "--mcp-config", '{"mcpServers":{"semcode":{"command":"semcode-mcp"}}}',
-                       "--allowedTools", allowed_tools,
-                       "--model", "opus", "--verbose",
-                       "--output-format=stream-json"]
-                if args.print_cmd:
-                    print(' '.join(cmd))
-                else:
-                    subprocess.run(cmd, stdout=f)
-                    print_result(f, debug=args.verbose)
-                try:
-                    shutil.copy("review-inline.txt", "%s/" %(args.root))
-                except FileNotFoundError:
-                    pass
-
-    git_worktree_prune()
+    print(args.base)
+    submit_to_sashiko(args)
