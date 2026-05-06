@@ -3,6 +3,7 @@
 import os
 import shutil
 import tempfile
+import requests
 from utils.git import *
 from utils.misc import *
 
@@ -68,25 +69,38 @@ def create_b4_mbox(args):
         exit("Could not locate b4 cover-letter commit on current branch")
     args.base = git_simple_output(["rev-parse", "%s~1" % cover])
 
-SASHIKO_NBU_URL = "http://sashiko-nbu.nvidia.com"
-SASHIKO_CLI = "/home/leonro/src/sashiko/target/release/sashiko-cli"
+SASHIKO_NBU_URL = "https://sashiko-nbu.nvidia.com"
 
 def submit_to_sashiko(args):
-    """Submit the mbox at ``args.mbox`` to sashiko-nbu via the sashiko-cli.
+    """Submit the mbox at ``args.mbox`` to sashiko-nbu via its HTTP API.
 
-    Delegates to ``sashiko-cli submit --type mbox --baseline <sha>``
-    pointed at the NBU server.  Returns the CLI's stdout as a string.
+    POSTs an ``inject`` SubmitRequest to ``/api/submit`` with the mbox
+    contents and ``args.base`` as the baseline commit.  Returns the
+    submission id reported by the server.
     """
-    cmd = [
-        SASHIKO_CLI,
-        "--server", SASHIKO_NBU_URL,
-        "submit",
-        "--baseline", args.base,
-    ]
-    with open(args.mbox, "rb") as fh:
-        out = subprocess.check_output(cmd, stdin=fh).decode()
-    print(out, end="")
-    return out
+    with open(args.mbox, "r") as fh:
+        raw = fh.read()
+
+    payload = {
+        "type": "inject",
+        "raw": raw,
+        "base_commit": args.base,
+        "skip_subjects": None,
+        "only_subjects": None,
+    }
+
+    # sashiko-nbu fronts its API with a self-signed corporate cert chain
+    # that isn't in the system trust store.
+    requests.packages.urllib3.disable_warnings(
+        requests.packages.urllib3.exceptions.InsecureRequestWarning)
+    resp = requests.post(SASHIKO_NBU_URL + "/api/submit",
+                         json=payload, verify=False)
+    if not resp.ok:
+        exit("Submission failed (%d): %s" % (resp.status_code, resp.text))
+
+    result = resp.json()
+    print("Submission accepted. ID: %s" % result["id"])
+    return result["id"]
 
 #--------------------------------------------------------------------------------------------------------
 def args_review(parser):
@@ -115,5 +129,4 @@ def cmd_review(args):
     else:
         exit("Supported for local b4 tracked branches")
 
-    print(args.base)
     submit_to_sashiko(args)
