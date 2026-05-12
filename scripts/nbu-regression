@@ -226,32 +226,57 @@ if [ "$VERBOSE" = true ]; then
     echo
 fi
 
-RESPONSE=$(curl -s -w "\n%{http_code}" \
+# -D - dumps response headers so we can read the queue Location header.
+RESPONSE=$(curl -s -D - -o /dev/null -w "%{http_code}" \
     -X POST \
     -u "${JENKINS_USER}@${JENKINS_EMAIL_DOMAIN}:${JENKINS_TOKEN}" \
     "${BUILD_ENDPOINT}?${PARAMS}")
 
-# Extract HTTP status code (last line)
 HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+QUEUE_URL=$(echo "$RESPONSE" | awk 'tolower($1)=="location:" {print $2}' | tr -d '\r')
 
-# Check response
-if [ "$HTTP_CODE" -eq 201 ] || [ "$HTTP_CODE" -eq 200 ]; then
-    if [ "$VERBOSE" = true ]; then
-        echo -e "${GREEN}✓ Job triggered successfully!${NC}"
-        echo
-        echo "Job URL: ${JENKINS_URL}/${JOB_PATH}"
-        echo
-        echo "You can monitor the job progress at:"
-        echo "${JENKINS_URL}/${JOB_PATH}/lastBuild/console"
-    fi
-    exit 0
-else
-    if [ "$VERBOSE" = true ]; then
-        echo -e "${RED}✗ Failed to trigger job${NC}"
-        echo "HTTP Status Code: $HTTP_CODE"
-        echo "Response:"
-        echo "$RESPONSE" | head -n -1
-    fi
+if [ "$HTTP_CODE" -ne 201 ] && [ "$HTTP_CODE" -ne 200 ]; then
+    echo -e "${RED}✗ Failed to trigger job${NC}"
+    echo "HTTP Status Code: $HTTP_CODE"
+    [ "$VERBOSE" = true ] && echo "$RESPONSE" | head -n -1
     exit 1
 fi
+
+# Poll the queue item until Jenkins assigns it to an executor and exposes
+# executable/url (the actual build URL). Use the XPath API so we get plain
+# text and don't need python/jq on the remote host. curl -f returns nonzero
+# while the executable element is missing; the trailing `|| true` keeps the
+# script's `set -e` from aborting the loop on those expected failures.
+# Jenkins is behind an nginx proxy that 301-redirects http://→https://, so
+# -L is required; the Location header from the POST often points to http://.
+# Jenkins refuses primitive XPath result sets ("SecureRequester"), so fetch
+# the JSON and grep the url that's nested inside the "executable" object —
+# the queue item also has a top-level "url" (the queue path) and a
+# "task.url" (the job folder) which we must not match.
+BUILD_URL=""
+for _ in $(seq 1 60); do
+    RAW=$(curl -sfL -u "${JENKINS_USER}@${JENKINS_EMAIL_DOMAIN}:${JENKINS_TOKEN}" \
+        "${QUEUE_URL}api/json" 2>/dev/null \
+        | tr -d '\n' \
+        | grep -oP '"executable"\s*:\s*\{[^}]*"url"\s*:\s*"\K[^"]+' \
+        || true)
+    if [[ "$RAW" == http*://* ]]; then
+        BUILD_URL="$RAW"
+        break
+    fi
+    sleep 2
+done
+
+# Jenkins reports itself over http:// when behind a TLS-terminating proxy;
+# force https:// to match the externally reachable URL.
+BUILD_URL=${BUILD_URL/#http:\/\//https:\/\/}
+
+if [ -n "$BUILD_URL" ]; then
+    echo -e "${GREEN}✓ NBU CI regression started:${NC} ${BUILD_URL}"
+else
+    QUEUE_URL=${QUEUE_URL/#http:\/\//https:\/\/}
+    echo -e "${YELLOW}Build did not start within timeout; check ${QUEUE_URL}${NC}"
+fi
+
+exit 0
 

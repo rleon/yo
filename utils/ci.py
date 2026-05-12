@@ -14,8 +14,6 @@ def run_nbu_ci(rev):
                              "GIT_REVISION=%s" % (git_current_sha(rev)),
                              "JENKINS_TOKEN=%s" % (token), "SKIP_EMAIL=true",
                              "bash"], script=f)
-        print("NBU CI regression started:")
-        print("\thttps://nbuprod.blsm.nvidia.com/nbu-sw-upstream-linux-build/job/CI/job/NFS_SOURCE_CI/job/main/")
         exec_on_remote("hpchead.lab.mtl.com",
                        args=["find /.autodirect/swgwork/%s/rpms" % (os.getlogin()),
                              "-mindepth", "1", "-mtime", "+3", "-delete"])
