@@ -1,9 +1,11 @@
 """YO cloud tools
 """
 import os
+import re
 import shutil
 import tempfile
 import requests
+from urllib.parse import quote
 from utils.git import *
 from utils.misc import *
 
@@ -99,7 +101,9 @@ def submit_to_sashiko(args):
         exit("Submission failed (%d): %s" % (resp.status_code, resp.text))
 
     result = resp.json()
-    print("Submission accepted. ID: %s" % result["id"])
+    # sashiko keys the patchset URL off the series' first Message-ID.
+    msgid = re.search(r"(?im)^Message-ID:\s*<([^>]+)>", raw).group(1)
+    print("%s/#/patchset/%s" % (SASHIKO_NBU_URL, quote(msgid, safe="")))
     return result["id"]
 
 #--------------------------------------------------------------------------------------------------------
